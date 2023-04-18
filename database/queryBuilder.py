@@ -7,8 +7,11 @@ class imageQueryBuilder:
         self.conditions = ""
     
     #returns a query to search for images with conditions  from the member variable. Call this function last
-    def FullImageDataQuery(self, count: int):
-        return f"""SELECT image.*, artist.name, category.name FROM scheme_test_similallery.image 
+    def buildQuery(self, count: int, fullData: bool = True):
+        neededRows = "image.*, artist.name, category.name"
+        if not fullData:
+            neededRows = "image.idimage, image.title, image.year, image.URL, artist.name, category.name"
+        return f"""SELECT {neededRows} FROM scheme_test_similallery.image 
             INNER JOIN artist ON image.artist_id = artist.idartist 
             INNER JOIN category ON category.idcategory = image.category_id
             {self.conditions}
@@ -27,10 +30,10 @@ class imageQueryBuilder:
         MAX_S = 100
         MAX_L = 100
         SIMILARITY_DEPTH = 3
-        for index in range(SIMILARITY_DEPTH):
-            self.appendNewClause(f"""(h_{index + 1} BETWEEN {max(palette[index]["h"] - H_DIFFERENCE,0)} AND {min(palette[index]["h"] + H_DIFFERENCE, MAX_H)}) AND 
-                (s_{index + 1} BETWEEN {max(palette[index]["s"] - S_DIFFERENCE, 0)} AND {min(palette[index]["s"] + S_DIFFERENCE, MAX_S)}) AND 
-                (l_{index + 1} BETWEEN {max(palette[index]["l"] - L_DIFFERENCE, 0)} AND {min(palette[index]["l"] + L_DIFFERENCE, MAX_L)})""")
+        for index in range(1, SIMILARITY_DEPTH + 1):
+            self.appendNewClause(f"""(h_{index} BETWEEN {max(palette[f"h_{index}"] - H_DIFFERENCE,0)} AND {min(palette[f"h_{index}"] + H_DIFFERENCE, MAX_H)}) AND 
+                (s_{index} BETWEEN {max(palette[f"s_{index}"] - S_DIFFERENCE, 0)} AND {min(palette[f"s_{index}"] + S_DIFFERENCE, MAX_S)}) AND 
+                (l_{index} BETWEEN {max(palette[f"l_{index}"] - L_DIFFERENCE, 0)} AND {min(palette[f"l_{index}"] + L_DIFFERENCE, MAX_L)})""")
         return self
 
     def similarPaletteRatiosCondition(self, baseRatios):

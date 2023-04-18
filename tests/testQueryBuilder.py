@@ -46,7 +46,7 @@ class testQueryBuilder(unittest.TestCase):
                 (s_3 BETWEEN 0 AND 5) AND
                 (l_3 BETWEEN 0 AND 5)
             LIMIT 15"""
-        actual = builder.similarPaletteCondition(palette).FullImageDataQuery(LIMIT)
+        actual = builder.similarPaletteCondition(palette).buildQuery(LIMIT)
         cleanExpected = "".join(EXPECTED.split())
         cleanAcutal = "".join(actual.split())
         self.assertEqual(cleanExpected, cleanAcutal)

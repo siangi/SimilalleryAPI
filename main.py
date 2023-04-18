@@ -1,6 +1,8 @@
 from fastapi import FastAPI
+from database.searchModel import similaritySearchModel
+from database.searchModel import SEARCH_MODES
 
-
+#start with uvicorn main:app --reload
 app = FastAPI()
 
 
@@ -10,4 +12,7 @@ async def root():
 
 @app.get("/similars/{imageId}")
 async def similarFromExisting(imageId: int):
-    return {"message": str(imageId)}
+    searcher = similaritySearchModel()
+    similars = searcher.getImageListBySimilarity([SEARCH_MODES.PALETTE], 4, imageId)
+    return {"message": similars}
+
