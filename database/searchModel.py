@@ -28,17 +28,28 @@ class similaritySearchModel:
         #dev. write mapper, that creates the palette.
         baseData = self.getBaseImageInfo(baseImageID)
         queryBuilder = imageQueryBuilder()
+        images = []
         for searchType in searchTypes:
+            queryBuilder.clearConditions()
             match searchType:
                 case SEARCH_MODES.PALETTE:
                     #dev . write data stripper so only basics are returned
-                    images = self.imgMapper.searchRecords(
+                    images.extend(self.imgMapper.searchRecords(
                         queryBuilder
                             .similarPaletteCondition(baseData)
-                            .buildQuery(amountPerType, False))
-                    return images
-                case _:
+                            .buildQuery(amountPerType, False)))
+                    
+                case SEARCH_MODES.SALIENCY_CENTER:
+                    images.extend(self.imgMapper.searchRecords(
+                        queryBuilder
+                            .similarSaliencyCenterCondition((baseData["sal_center_x"], baseData["sal_center_y"]))
+                            .buildQuery(amountPerType, False)
+                    ))
+                case other:
                     raise Exception(f"search Type {searchType} not yet implemented")
+                
+        print(images)
+        return images
 
         
 

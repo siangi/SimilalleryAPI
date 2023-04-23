@@ -11,21 +11,26 @@ class imageQueryBuilder:
         neededRows = "image.*, artist.name, category.name"
         if not fullData:
             neededRows = "image.idimage, image.title, image.year, image.URL, artist.name, category.name"
+
+        print(self.conditions)
         return f"""SELECT {neededRows} FROM scheme_test_similallery.image 
             INNER JOIN artist ON image.artist_id = artist.idartist 
             INNER JOIN category ON category.idcategory = image.category_id
             {self.conditions}
             LIMIT {count}"""
 
+    def clearConditions(self):
+        self.conditions = ""
+        return self
 
     def imgByIDCondition(self, id:int):
         self.appendNewClause(f"image.idimage = {id}")
         return self
 
     def similarPaletteCondition(self, palette: list):
-        H_DIFFERENCE = 5
-        S_DIFFERENCE = 5
-        L_DIFFERENCE = 5
+        H_DIFFERENCE = 10
+        S_DIFFERENCE = 7
+        L_DIFFERENCE = 7
         MAX_H = 360
         MAX_S = 100
         MAX_L = 100
@@ -43,7 +48,10 @@ class imageQueryBuilder:
         pass
 
     def similarSaliencyCenterCondition(self, baseCenter):
-        pass
+        SALIENCY_DIFF = 3
+        self.appendNewClause(f"(sal_center_x between {max(baseCenter[0] - SALIENCY_DIFF, 0)} and {min(baseCenter[0] + SALIENCY_DIFF, 100)}) and (sal_center_y between {max(baseCenter[1] - SALIENCY_DIFF, 0)} and {min(baseCenter[1] + SALIENCY_DIFF, 100)})")
+        print(self.conditions)
+        return self
 
     def similarSaliencyRectCondition(self, baseRect):
         pass
