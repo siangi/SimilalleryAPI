@@ -28,34 +28,45 @@ class similaritySearchModel:
         #dev. write mapper, that creates the palette.
         baseData = self.getBaseImageInfo(baseImageID)
         queryBuilder = imageQueryBuilder()
-        images = []
+        images = [baseData]
         for searchType in searchTypes:
             queryBuilder.clearConditions()
             match searchType:
                 case SEARCH_MODES.PALETTE:
                     #dev . write data stripper so only basics are returned
-                    images.extend(self.imgMapper.searchRecords(
-                        queryBuilder
-                            .similarPaletteCondition(baseData)
-                            .buildQuery(amountPerType, False)))
+                    queryBuilder.similarPalette(baseData)
+
+                case SEARCH_MODES.PALETTE_RATIOS:
+                    queryBuilder.similarPaletteRatios(baseData)
                     
                 case SEARCH_MODES.SALIENCY_CENTER:
-                    images.extend(self.imgMapper.searchRecords(
-                        queryBuilder
-                            .similarSaliencyCenterCondition((baseData["sal_center_x"], baseData["sal_center_y"]))
-                            .buildQuery(amountPerType, False)
-                    ))
-                case other:
-                    raise Exception(f"search Type {searchType} not yet implemented")
+                    queryBuilder.similarSaliencyCenter((baseData["sal_center_x"], baseData["sal_center_y"]))
                 
-        print(images)
+                case SEARCH_MODES.SALIENCY_RECT:
+                    queryBuilder.similarSaliencyRect(baseData)
+
+                case SEARCH_MODES.ANGLE_RATIOS:
+                    queryBuilder.similarAngleRatios(baseData)                
+            
+            images.extend(self.imgMapper.searchRecords(
+                queryBuilder
+                    .notMainImg(baseImageID)
+                    .buildQuery(amountPerType, False)
+            ))
+            
+        for index, image in enumerate(images):
+            if index == 0:
+                image["isMain"] = True
+            else:
+                image["isMain"] = False
+
         return images
 
         
 
     def getBaseImageInfo(self, baseID):
         queryBuilder = imageQueryBuilder()
-        possibles = self.imgMapper.searchRecords(queryBuilder.imgByIDCondition(baseID).buildQuery(1))
+        possibles = self.imgMapper.searchRecords(queryBuilder.imgByID(baseID).buildQuery(1))
         if len(possibles) > 0:
             return possibles[0]
 

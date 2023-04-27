@@ -28,6 +28,6 @@ async def root():
 @app.get("/similars/{imageId}")
 async def similarFromExisting(imageId: int):
     searcher = similaritySearchModel()
-    similars = searcher.getImageListBySimilarity([SEARCH_MODES.PALETTE, SEARCH_MODES.SALIENCY_CENTER], 15, imageId)
+    similars = searcher.getImageListBySimilarity([SEARCH_MODES.SALIENCY_RECT], 10, imageId)
     return {"message": similars}
 
