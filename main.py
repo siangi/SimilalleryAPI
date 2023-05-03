@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from typing import Annotated
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from database.searchModel import similaritySearchModel
 from database.searchModel import SEARCH_MODES
+from models.similarsRequest import SimilarsRequest
 
 
 BASE_GROUP_SIZE = 15
@@ -25,9 +27,9 @@ app.add_middleware(
 async def root():
     return {"message": "Hello World"}
 
-@app.get("/similars/{imageId}")
-async def similarFromExisting(imageId: int):
+@app.get("/similars/")
+async def similarFromExisting(baseId: int, similarityCriteria: Annotated[list[int]| None, Query()] = None):
+    print(baseId, similarityCriteria)
     searcher = similaritySearchModel()
-    similars = searcher.getImageListBySimilarity([SEARCH_MODES.SALIENCY_RECT], 10, imageId)
+    similars = searcher.getImageListBySimilarity(similarityCriteria, 10, baseId)
     return {"message": similars}
-

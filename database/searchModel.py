@@ -4,11 +4,11 @@ import database.connection as connection
 from database.queryBuilder import imageQueryBuilder
 
 class SEARCH_MODES(Enum):
-    PALETTE = 1
-    PALETTE_RATIOS = 2
-    ANGLE_RATIOS = 3
-    SALIENCY_CENTER = 4
-    SALIENCY_RECT = 5
+    PALETTE: int = 1
+    PALETTE_RATIOS: int = 2
+    ANGLE_RATIOS: int = 3
+    SALIENCY_CENTER: int = 4
+    SALIENCY_RECT: int = 5
     
 class similaritySearchModel:
     imgMapper: imageMapper
@@ -21,7 +21,14 @@ class similaritySearchModel:
         if mapper == None:
             self.imgMapper = imageMapper()
         else:
-            self.imgMapper = mapper          
+            self.imgMapper = mapper         
+
+    def _removeDoublesById(self, objectList):
+        unique =  {}
+        for elem in objectList:
+            unique[elem["idimage"]] = elem
+        
+        return list(unique.values()) 
 
 
     def getImageListBySimilarity(self, searchTypes: list, amountPerType: int, baseImageID: int):
@@ -31,38 +38,38 @@ class similaritySearchModel:
         images = [baseData]
         for searchType in searchTypes:
             queryBuilder.clearConditions()
+            # restore these to the ENUM when I find out hwo
             match searchType:
-                case SEARCH_MODES.PALETTE:
-                    #dev . write data stripper so only basics are returned
+                case 1:
                     queryBuilder.similarPalette(baseData)
 
-                case SEARCH_MODES.PALETTE_RATIOS:
+                case 2:
                     queryBuilder.similarPaletteRatios(baseData)
                     
-                case SEARCH_MODES.SALIENCY_CENTER:
-                    queryBuilder.similarSaliencyCenter((baseData["sal_center_x"], baseData["sal_center_y"]))
+                case 3:
+                    queryBuilder.similarAngleRatios(baseData)  
                 
-                case SEARCH_MODES.SALIENCY_RECT:
-                    queryBuilder.similarSaliencyRect(baseData)
+                case 4:
+                    queryBuilder.similarSaliencyCenter((baseData["sal_center_x"], baseData["sal_center_y"]))
 
-                case SEARCH_MODES.ANGLE_RATIOS:
-                    queryBuilder.similarAngleRatios(baseData)                
+                case 5:
+                    queryBuilder.similarSaliencyRect(baseData)                           
             
             images.extend(self.imgMapper.searchRecords(
                 queryBuilder
                     .notMainImg(baseImageID)
                     .buildQuery(amountPerType, False)
             ))
+
             
         for index, image in enumerate(images):
-            if index == 0:
+            if int(image["idimage"]) == baseImageID:
                 image["isMain"] = True
             else:
                 image["isMain"] = False
 
-        return images
+        return self._removeDoublesById(images)      
 
-        
 
     def getBaseImageInfo(self, baseID):
         queryBuilder = imageQueryBuilder()
