@@ -28,8 +28,8 @@ async def root():
     return {"message": "Hello World"}
 
 @app.get("/similars/")
-async def similarFromExisting(baseId: int, similarityCriteria: Annotated[list[int]| None, Query()] = None):
+async def similarFromExisting(baseId: int, imageCount: int, similarityCriteria: Annotated[list[int]| None, Query()] = None):
     print(baseId, similarityCriteria)
     searcher = similaritySearchModel()
-    similars = searcher.getImageListBySimilarity(similarityCriteria, 10, baseId)
+    similars = searcher.getImageListBySimilarity(similarityCriteria, imageCount, baseId)
     return {"message": similars}
