@@ -3,7 +3,7 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from database.searchModel import similaritySearchModel
 from database.searchModel import SEARCH_MODES
-from models.similarsRequest import SimilarsRequest
+
 
 
 BASE_GROUP_SIZE = 15
