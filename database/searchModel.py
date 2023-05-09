@@ -41,26 +41,24 @@ class similaritySearchModel:
             # restore these to the ENUM when I find out hwo
             match searchType:
                 case 0:
-                    queryBuilder.similarPalette(baseData)
+                    queryBuilder.similarPalette(baseData).paletteSorting(baseData)
 
                 case 1:
-                    queryBuilder.similarPaletteRatios(baseData)
+                    queryBuilder.similarPaletteRatios(baseData).paletteRatioSorting(baseData)
                     
                 case 2:
-                    queryBuilder.similarAngleRatios(baseData)  
+                    queryBuilder.similarAngleRatios(baseData).angleRatioSorting(baseData)  
                 
                 case 3:
-                    queryBuilder.similarSaliencyCenter((baseData["sal_center_x"], baseData["sal_center_y"]))
+                    center = (baseData["sal_center_x"], baseData["sal_center_y"])
+                    queryBuilder.similarSaliencyCenter(center).saliencyCenterSorting(center)
 
                 case 4:
-                    queryBuilder.similarSaliencyRect(baseData)                           
-            
-            images.extend(self.imgMapper.searchRecords(
-                queryBuilder
-                    .notMainImg(baseImageID)
-                    .buildQuery(amountPerType, False)
-            ))
+                    queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(center)
 
+            fullquery = queryBuilder.notMainImg(baseImageID).buildQuery(amountPerType, False)
+            images.extend(self.imgMapper.searchRecords(fullquery))
+            print(fullquery)
             
         for index, image in enumerate(images):
             if int(image["idimage"]) == baseImageID:
@@ -70,11 +68,13 @@ class similaritySearchModel:
 
         return self._removeDoublesById(images)      
 
-
     def getBaseImageInfo(self, baseID):
         queryBuilder = imageQueryBuilder()
         possibles = self.imgMapper.searchRecords(queryBuilder.imgByID(baseID).buildQuery(1))
         if len(possibles) > 0:
             return possibles[0]
+        
+
+
 
 

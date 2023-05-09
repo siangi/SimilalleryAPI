@@ -2,29 +2,37 @@ import numpy as np
 from decimal import *
 
 class imageQueryBuilder:
-    filters: str
+    columns: list
+    filters: list
+    sorting: list
 
     def __init__(self) -> None:
-        self.filters = ""
+        self.filters = []
+        self.columns = []
+        self.sorting = []
     
     #returns a query to search for images with conditions  from the member variable. Call this function last
     def buildQuery(self, count: int, fullData: bool = True):
-        neededRows = "image.*, artist.name, category.name"
+        if fullData:
+            self.columns.extend(["image.*", "artist.name as artist_name" , "category.name as category_name"])
         if not fullData:
-            neededRows = "image.idimage, image.title, image.year, image.URL, artist.name, category.name"
+            self.columns.extend(["image.idimage","image.title","image.year","image.URL","artist.name as artistname","category.name as categoryname"])
 
-        return f"""SELECT {neededRows} FROM scheme_test_similallery.image 
+        print(len(self.sorting))
+        return f"""SELECT {",".join(self.columns)} FROM scheme_test_similallery.image 
             INNER JOIN artist ON image.artist_id = artist.idartist 
             INNER JOIN category ON category.idcategory = image.category_id
-            {self.filters}
+            WHERE {"AND".join(self.filters)}
+            {'ORDER BY ' + ', '.join(self.sorting) if len(self.sorting) > 0 else 'ORDER BY image.idimage'}
             LIMIT {count}"""
 
     def clearConditions(self):
-        self.filters = ""
+        self.filters = []
+        self.sorting = []
         return self
 
     def imgByID(self, id:int):
-        self.appendNewFilter(f"image.idimage = {id}")
+        self.filters.append(f"image.idimage = {id}")
         return self
 
     def similarPalette(self, palette: dict):
@@ -35,10 +43,26 @@ class imageQueryBuilder:
         MAX_S = 100
         MAX_L = 100
         SIMILARITY_DEPTH = 3
+
         for index in range(1, SIMILARITY_DEPTH + 1):
-            self.appendNewFilter(f"""(h_{index} BETWEEN {max(palette[f"h_{index}"] - H_DIFFERENCE,0)} AND {min(palette[f"h_{index}"] + H_DIFFERENCE, MAX_H)}) AND 
+            self.filters.append(f"""(h_{index} BETWEEN {max(palette[f"h_{index}"] - H_DIFFERENCE,0)} AND {min(palette[f"h_{index}"] + H_DIFFERENCE, MAX_H)}) AND 
                 (s_{index} BETWEEN {max(palette[f"s_{index}"] - S_DIFFERENCE, 0)} AND {min(palette[f"s_{index}"] + S_DIFFERENCE, MAX_S)}) AND 
                 (l_{index} BETWEEN {max(palette[f"l_{index}"] - L_DIFFERENCE, 0)} AND {min(palette[f"l_{index}"] + L_DIFFERENCE, MAX_L)})""")
+            
+        return self
+    
+    def paletteSorting(self, palette: dict):
+        SIMILARITY_DEPTH = 3
+
+        for index in range(1, SIMILARITY_DEPTH + 1):
+            COL_NAME = f"palette_similarity_{index}"
+            self.euclidianDistanceFakeColumn(
+                [palette[f"h_{index}"], palette[f"s_{index}"], palette[f"l_{index}"]],
+                [f"h_{index}", f"s_{index}", f"l_{index}"],
+                COL_NAME
+            )
+            self.appendNewSorting(COL_NAME, True)
+
         return self
 
     def similarPaletteRatios(self, baseRatios: dict):
@@ -48,26 +72,61 @@ class imageQueryBuilder:
         
         for index in range(1, SIMILARITY_DEPTH + 1):
             colName = f"pal_ratio_{index}"
-            self.appendNewFilter(f"({colName} BETWEEN {max(baseRatios[colName] - RATIO_DIFF, 0)} AND {min(baseRatios[colName] + RATIO_DIFF, RATIO_MAX)})""")
+            ratio_min = round(max(baseRatios[colName] - RATIO_DIFF, 0), 3)  
+            ratio_max = round(min(baseRatios[colName] + RATIO_DIFF, RATIO_MAX), 3)
+            self.filters.append(f"({colName} BETWEEN {ratio_min} AND {ratio_max})""")
 
         return self
+    
+    
+    def paletteRatioSorting(self, baseRatios: dict):
+        COL_NAME = "palette_ratio_similarity"
+        self.euclidianDistanceFakeColumn(
+            [baseRatios["pal_ratio_1"], baseRatios["pal_ratio_2"], baseRatios["pal_ratio_3"], baseRatios["pal_ratio_4"], baseRatios["pal_ratio_5"]],
+            ["pal_ratio_1", "pal_ratio_2", "pal_ratio_3", "pal_ratio_4", "pal_ratio_5"],
+            COL_NAME)
+        self.appendNewSorting(COL_NAME, True)
+
 
     def similarAngleRatios(self, baseRatios):
         RATIO_DIFF = Decimal(0.1)
         SIMILARITY_DEPTH = 7
-        RATIO_MAX = 1
 
         for index in range(1, SIMILARITY_DEPTH + 1):
             colName = f"angle_ratio_{index}"
-            self.appendNewFilter(f"({colName} BETWEEN {max(baseRatios[colName] - RATIO_DIFF,0)} AND {min(baseRatios[colName] + RATIO_DIFF, 1)})")
-        pass
-
-    def similarSaliencyCenter(self, baseCenter):
-        SALIENCY_DIFF = 3
-        self.appendNewFilter(f"(sal_center_x between {max(baseCenter[0] - SALIENCY_DIFF, 0)} and {min(baseCenter[0] + SALIENCY_DIFF, 100)}) and (sal_center_y between {max(baseCenter[1] - SALIENCY_DIFF, 0)} and {min(baseCenter[1] + SALIENCY_DIFF, 100)})")
+            self.filters.append(f"({colName} BETWEEN {max(baseRatios[colName] - RATIO_DIFF,0)} AND {min(baseRatios[colName] + RATIO_DIFF, 1)})")
+        
         return self
 
-    def similarSaliencyRect(self, baseRect):
+    def angleRatioSorting(self, baseRatios):
+        COL_NAME = "angle_ratio_similarity"
+        self.euclidianDistanceFakeColumn([
+            baseRatios["angle_ratio_1"],
+            baseRatios["angle_ratio_2"],
+            baseRatios["angle_ratio_3"],
+            baseRatios["angle_ratio_4"],
+            baseRatios["angle_ratio_5"],
+            baseRatios["angle_ratio_6"],
+            baseRatios["angle_ratio_7"],
+            baseRatios["angle_ratio_8"],
+        ], 
+        ["angle_ratio_1", "angle_ratio_2", "angle_ratio_3", "angle_ratio_4", "angle_ratio_5", "angle_ratio_6", "angle_ratio_7", "angle_ratio_8"],
+        "angle_ratio_similarity")
+        self.appendNewSorting(COL_NAME, True)
+        return self
+    
+    def similarSaliencyCenter(self, baseCenter: tuple):
+        SALIENCY_DIFF = 3
+        self.filters.append(f"(sal_center_x between {max(baseCenter[0] - SALIENCY_DIFF, 0)} and {min(baseCenter[0] + SALIENCY_DIFF, 100)}) and (sal_center_y between {max(baseCenter[1] - SALIENCY_DIFF, 0)} and {min(baseCenter[1] + SALIENCY_DIFF, 100)})")
+        return self
+    
+    def saliencyCenterSorting(self, baseCenter: tuple):
+        COL_NAME = "sal_center_similarity"
+        self.euclidianDistanceFakeColumn(baseCenter, COL_NAME)
+        self.appendNewSorting(COL_NAME, True)
+        return self
+
+    def similarSaliencyRect(self, baseRect: dict):
         RECT_DIFF = 5
         MIN_VAL = 0
         MAX_VAL = 100
@@ -80,33 +139,58 @@ class imageQueryBuilder:
         rectHeightMin = max(baseRect["sal_rect_height"] - RECT_DIFF, MIN_VAL)
         rectHeightMax = min(baseRect["sal_rect_height"] + RECT_DIFF, MAX_VAL)
 
-        self.appendNewFilter(f"(sal_rect_x BETWEEN {rectXmin} AND {rectXmax})")
-        self.appendNewFilter(f"(sal_rect_y BETWEEN {rectYmin} AND {rectYmax})")
-        self.appendNewFilter(f"(sal_rect_width BETWEEN {rectWidthMin} AND {rectWidthMax})")
-        self.appendNewFilter(f"(sal_rect_height BETWEEN {rectHeightMin} AND {rectHeightMax})")
-
+        self.filters.append(f"(sal_rect_x BETWEEN {rectXmin} AND {rectXmax})")
+        self.filters.append(f"(sal_rect_y BETWEEN {rectYmin} AND {rectYmax})")
+        self.filters.append(f"(sal_rect_width BETWEEN {rectWidthMin} AND {rectWidthMax})")
+        self.filters.append(f"(sal_rect_height BETWEEN {rectHeightMin} AND {rectHeightMax})")
+    
         return self
+    
+    def saliencyRectSorting(self, baseRect: dict):
+        COL_NAME = "sal_rect_similarity"
+        self.euclidianDistanceFakeColumn([baseRect["sal_rect_x"], baseRect["sal_rect_y"], baseRect["sal_rect_width"], baseRect["sal_rect_height"]]
+            ["sal_rect_x", "sal_rect_y", "sal_rect_width", "sal_rect_height"], COL_NAME)
+        self.appendNewSorting(COL_NAME, True)
+        return self
+        
 
     def differentMetadata(self, originalMetadata):
         pass
 
+    # creates a fake column for with a euclidian distance value. Columns are compared with an explicit value,
+    # so values and columns need to correlate. Outputname is the Name of the fake column.
+    def euclidianDistanceFakeColumn(self, values, columns, outputName):
+        if (len(values) != len(columns)):
+            raise Exception("unequal Values and Columns in euclidian Distance" + str(values) + str(columns))
+
+        factors = []
+        for idx in range(0, len(values)):
+            factors.append(f"pow({values[idx]} - {columns[idx]}, 2)")
+
+        self.columns.append(f"round(sqrt({' + '.join(factors)}), 2) as {outputName}")
+        return self
+
+
     def notMainImg(self, mainID):
-        self.appendNewFilter(f"(NOT idimage = {mainID})")
+        self.filters.append(f"(NOT idimage = {mainID})")
         return self
 
-    # writes a new where clause to the member variable. 
-    def appendNewFilter(self, clause: str):
-        if self.filters.strip() == "":
-            self.filters = f"WHERE {clause}"
+    # writes a new where clause to the member variable.     
+    def appendNewSorting(self, col: str, isAscending: bool):
+        if isAscending:
+            self.sorting.append(col + " ASC")
         else:
-            self.filters = f"{self.filters} AND {clause}"
-    
-    def appendNewOrdering(self, clause: str):
+            self.sorting.append(col + " DESC")
+
         return self
 
-
-
-
+if __name__ == "__main__":
+    builder = imageQueryBuilder()
+    print(builder
+          .similarSaliencyCenter((35, 35))
+          .euclidianDistanceFakeColumn([35, 35], ["sal_center_x", "sal_center_y"], "saliency_distance")
+          .appendNewSorting("saliency_distance", True)
+          .buildQuery(15, True))
 
 
 
