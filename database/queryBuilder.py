@@ -36,9 +36,9 @@ class imageQueryBuilder:
         return self
 
     def similarPalette(self, palette: dict):
-        H_DIFFERENCE = 15
-        S_DIFFERENCE = 10
-        L_DIFFERENCE = 10
+        H_DIFFERENCE = 20
+        S_DIFFERENCE = 20
+        L_DIFFERENCE = 20
         MAX_H = 360
         MAX_S = 100
         MAX_L = 100
@@ -122,7 +122,7 @@ class imageQueryBuilder:
     
     def saliencyCenterSorting(self, baseCenter: tuple):
         COL_NAME = "sal_center_similarity"
-        self.euclidianDistanceFakeColumn(baseCenter, COL_NAME)
+        self.euclidianDistanceFakeColumn(baseCenter, ["sal_center_x", "sal_center_y"], COL_NAME)
         self.appendNewSorting(COL_NAME, True)
         return self
 
@@ -148,7 +148,7 @@ class imageQueryBuilder:
     
     def saliencyRectSorting(self, baseRect: dict):
         COL_NAME = "sal_rect_similarity"
-        self.euclidianDistanceFakeColumn([baseRect["sal_rect_x"], baseRect["sal_rect_y"], baseRect["sal_rect_width"], baseRect["sal_rect_height"]]
+        self.euclidianDistanceFakeColumn([baseRect["sal_rect_x"], baseRect["sal_rect_y"], baseRect["sal_rect_width"], baseRect["sal_rect_height"]],
             ["sal_rect_x", "sal_rect_y", "sal_rect_width", "sal_rect_height"], COL_NAME)
         self.appendNewSorting(COL_NAME, True)
         return self

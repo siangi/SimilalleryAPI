@@ -33,3 +33,7 @@ async def similarFromExisting(baseId: int, imageCount: int, similarityCriteria: 
     searcher = similaritySearchModel()
     similars = searcher.getImageListBySimilarity(similarityCriteria, imageCount, baseId)
     return {"message": similars}
+
+if __name__ == "__main__":
+    model = similaritySearchModel()
+    model.getImageListBySimilarity([2], 100, 32531)

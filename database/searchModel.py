@@ -54,7 +54,7 @@ class similaritySearchModel:
                     queryBuilder.similarSaliencyCenter(center).saliencyCenterSorting(center)
 
                 case 4:
-                    queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(center)
+                    queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(baseData)
 
             fullquery = queryBuilder.notMainImg(baseImageID).buildQuery(amountPerType, False)
             images.extend(self.imgMapper.searchRecords(fullquery))
