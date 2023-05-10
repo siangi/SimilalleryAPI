@@ -14,9 +14,9 @@ class imageQueryBuilder:
     #returns a query to search for images with conditions  from the member variable. Call this function last
     def buildQuery(self, count: int, fullData: bool = True):
         if fullData:
-            self.columns.extend(["image.*", "artist.name as artist_name" , "category.name as category_name"])
+            self.columns.extend(["image.*", "artist.name as artist_name" , "artist.nationalityID as artist_nationality","category.name as category_name"])
         if not fullData:
-            self.columns.extend(["image.idimage","image.title","image.year","image.URL","artist.name as artistname","category.name as categoryname"])
+            self.columns.extend(["image.idimage","image.title","image.year","image.URL","artist.name as artist_name", "artist.nationalityID as artist_nationality","category.name as category_name"])
 
         print(len(self.sorting))
         return f"""SELECT {",".join(self.columns)} FROM scheme_test_similallery.image 

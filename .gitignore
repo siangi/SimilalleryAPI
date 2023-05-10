@@ -1,3 +1,4 @@
 *.pyc
  
 ./database/connection.py
+.vscode/settings.json

@@ -2,6 +2,7 @@ from enum import Enum
 from database.imageMapper import imageMapper
 import database.connection as connection
 from database.queryBuilder import imageQueryBuilder
+from models.selectionModel import ImageSelector
 
 class SEARCH_MODES(Enum):
     PALETTE: int = 0
@@ -40,26 +41,27 @@ class similaritySearchModel:
             queryBuilder.clearConditions()
             # restore these to the ENUM when I find out hwo
             match searchType:
-                case 0:
+                case SEARCH_MODES.PALETTE.value:
                     queryBuilder.similarPalette(baseData).paletteSorting(baseData)
 
-                case 1:
+                case SEARCH_MODES.PALETTE_RATIOS.value:
                     queryBuilder.similarPaletteRatios(baseData).paletteRatioSorting(baseData)
                     
-                case 2:
+                case SEARCH_MODES.ANGLE_RATIOS.value:
                     queryBuilder.similarAngleRatios(baseData).angleRatioSorting(baseData)  
                 
-                case 3:
+                case SEARCH_MODES.SALIENCY_CENTER.value:
                     center = (baseData["sal_center_x"], baseData["sal_center_y"])
                     queryBuilder.similarSaliencyCenter(center).saliencyCenterSorting(center)
 
-                case 4:
+                case SEARCH_MODES.SALIENCY_RECT.value:
                     queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(baseData)
 
-            fullquery = queryBuilder.notMainImg(baseImageID).buildQuery(amountPerType, False)
-            images.extend(self.imgMapper.searchRecords(fullquery))
-            print(fullquery)
-            
+            fullquery = queryBuilder.notMainImg(baseImageID).buildQuery(100, False)
+            unselected = self.imgMapper.searchRecords(fullquery) 
+            selected = ImageSelector.getMostDifferentImages(baseData, unselected, amountPerType)
+            images.extend(selected)
+
         for index, image in enumerate(images):
             if int(image["idimage"]) == baseImageID:
                 image["isMain"] = True

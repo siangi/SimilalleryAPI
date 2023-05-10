@@ -1,10 +1,8 @@
 from typing import Annotated
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from database.searchModel import similaritySearchModel
-from database.searchModel import SEARCH_MODES
-
-
+from models.searchModel import similaritySearchModel
+from models.searchModel import SEARCH_MODES
 
 BASE_GROUP_SIZE = 15
 #start with uvicorn main:app --reload
@@ -29,9 +27,9 @@ async def root():
 
 @app.get("/similars/")
 async def similarFromExisting(baseId: int, imageCount: int, similarityCriteria: Annotated[list[int]| None, Query()] = None):
-    print(baseId, similarityCriteria)
+    countPerCategory = (imageCount / len(similarityCriteria)).__floor__()
     searcher = similaritySearchModel()
-    similars = searcher.getImageListBySimilarity(similarityCriteria, imageCount, baseId)
+    similars = searcher.getImageListBySimilarity(similarityCriteria, countPerCategory, baseId)
     return {"message": similars}
 
 if __name__ == "__main__":

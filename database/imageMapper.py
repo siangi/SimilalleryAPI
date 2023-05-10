@@ -1,6 +1,5 @@
 import mysql.connector
 import database.connection as connection
-import models.imageData as imageModels
 
 class imageMapper:
     def __init__(self) -> None:
