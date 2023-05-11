@@ -34,7 +34,12 @@ class similaritySearchModel:
 
     def getImageListBySimilarity(self, searchTypes: list, amountPerType: int, baseImageID: int):
         #dev. write mapper, that creates the palette.
-        baseData = self.getBaseImageInfo(baseImageID)
+        baseData = None
+        if baseImageID == -1:
+            baseData = self.getRandomBaseImage()
+        else:
+            baseData = self.getBaseImageInfo(baseImageID)
+
         queryBuilder = imageQueryBuilder()
         images = [baseData]
         for searchType in searchTypes:
@@ -69,6 +74,13 @@ class similaritySearchModel:
                 image["isMain"] = False
 
         return self._removeDoublesById(images)      
+
+    def getRandomBaseImage(self):
+        queryBuilder = imageQueryBuilder()
+        randomQuery = queryBuilder.randomIdSorting().buildQuery(1)
+        possibles = self.imgMapper.searchRecords(randomQuery)
+        if len(possibles) > 0:
+            return possibles[0]
 
     def getBaseImageInfo(self, baseID):
         queryBuilder = imageQueryBuilder()

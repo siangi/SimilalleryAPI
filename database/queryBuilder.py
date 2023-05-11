@@ -22,7 +22,7 @@ class imageQueryBuilder:
         return f"""SELECT {",".join(self.columns)} FROM scheme_test_similallery.image 
             INNER JOIN artist ON image.artist_id = artist.idartist 
             INNER JOIN category ON category.idcategory = image.category_id
-            WHERE {"AND".join(self.filters)}
+            {"WHERE " + "AND".join(self.filters) if len(self.filters) > 0 else "" }
             {'ORDER BY ' + ', '.join(self.sorting) if len(self.sorting) > 0 else 'ORDER BY image.idimage'}
             LIMIT {count}"""
 
@@ -153,6 +153,9 @@ class imageQueryBuilder:
         self.appendNewSorting(COL_NAME, True)
         return self
         
+    def randomIdSorting(self):
+        self.appendNewSorting("RAND()", True)
+        return self
 
     def differentMetadata(self, originalMetadata):
         pass
