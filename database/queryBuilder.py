@@ -18,7 +18,6 @@ class imageQueryBuilder:
         if not fullData:
             self.columns.extend(["image.idimage","image.title","image.year","image.URL","artist.name as artist_name", "artist.nationalityID as artist_nationality","category.name as category_name"])
 
-        print(len(self.sorting))
         return f"""SELECT {",".join(self.columns)} FROM scheme_test_similallery.image 
             INNER JOIN artist ON image.artist_id = artist.idartist 
             INNER JOIN category ON category.idcategory = image.category_id
@@ -100,9 +99,9 @@ class imageQueryBuilder:
 
         for index in range(1, SIMILARITY_DEPTH + 1):
             colName = f"angle_ratio_{index}"
-            min = round(max(baseRatios[colName] - RATIO_DIFF,0), 3 )
-            max = round(min(baseRatios[colName] + RATIO_DIFF, 1), 3)
-            self.filters.append(f"({colName} BETWEEN {min} AND {max})")
+            minRatio = round(max(baseRatios[colName] - RATIO_DIFF,0), 3 )
+            maxRatio = round(min(baseRatios[colName] + RATIO_DIFF, 1), 3)
+            self.filters.append(f"({colName} BETWEEN {minRatio} AND {maxRatio})")
         
         return self
 
