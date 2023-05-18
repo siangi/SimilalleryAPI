@@ -45,9 +45,15 @@ class imageQueryBuilder:
         SIMILARITY_DEPTH = 3
 
         for index in range(1, SIMILARITY_DEPTH + 1):
-            self.filters.append(f"""(h_{index} BETWEEN {max(palette[f"h_{index}"] - H_DIFFERENCE,0)} AND {min(palette[f"h_{index}"] + H_DIFFERENCE, MAX_H)}) AND 
-                (s_{index} BETWEEN {max(palette[f"s_{index}"] - S_DIFFERENCE, 0)} AND {min(palette[f"s_{index}"] + S_DIFFERENCE, MAX_S)}) AND 
-                (l_{index} BETWEEN {max(palette[f"l_{index}"] - L_DIFFERENCE, 0)} AND {min(palette[f"l_{index}"] + L_DIFFERENCE, MAX_L)})""")
+            h_min = max(palette[f"h_{index}"] - H_DIFFERENCE,0)
+            h_max = min(palette[f"h_{index}"] + H_DIFFERENCE, MAX_H)
+            s_min = max(palette[f"s_{index}"] - S_DIFFERENCE, 0)
+            s_max = min(palette[f"s_{index}"] + S_DIFFERENCE, MAX_S)
+            l_min = max(palette[f"l_{index}"] - L_DIFFERENCE, 0)
+            l_max = min(palette[f"l_{index}"] + L_DIFFERENCE, MAX_L)
+            self.filters.append(f"""(h_{index} BETWEEN {h_min} AND {h_max}) AND 
+                (s_{index} BETWEEN {s_min} AND {s_max}) AND 
+                (l_{index} BETWEEN {l_min} AND {l_max})""")
             
         return self
     
@@ -94,7 +100,9 @@ class imageQueryBuilder:
 
         for index in range(1, SIMILARITY_DEPTH + 1):
             colName = f"angle_ratio_{index}"
-            self.filters.append(f"({colName} BETWEEN {max(baseRatios[colName] - RATIO_DIFF,0)} AND {min(baseRatios[colName] + RATIO_DIFF, 1)})")
+            min = round(max(baseRatios[colName] - RATIO_DIFF,0), 3 )
+            max = round(min(baseRatios[colName] + RATIO_DIFF, 1), 3)
+            self.filters.append(f"({colName} BETWEEN {min} AND {max})")
         
         return self
 
@@ -117,7 +125,11 @@ class imageQueryBuilder:
     
     def similarSaliencyCenter(self, baseCenter: tuple):
         SALIENCY_DIFF = 3
-        self.filters.append(f"(sal_center_x between {max(baseCenter[0] - SALIENCY_DIFF, 0)} and {min(baseCenter[0] + SALIENCY_DIFF, 100)}) and (sal_center_y between {max(baseCenter[1] - SALIENCY_DIFF, 0)} and {min(baseCenter[1] + SALIENCY_DIFF, 100)})")
+        x_min = max(baseCenter[0] - SALIENCY_DIFF, 0)
+        x_max = min(baseCenter[0] + SALIENCY_DIFF, 100)
+        y_min = max(baseCenter[1] - SALIENCY_DIFF, 0)
+        y_max = min(baseCenter[1] + SALIENCY_DIFF, 100)
+        self.filters.append(f"(sal_center_x between {x_min} and {x_max}) and (sal_center_y between {y_min} and {y_max})")
         return self
     
     def saliencyCenterSorting(self, baseCenter: tuple):
@@ -156,9 +168,6 @@ class imageQueryBuilder:
     def randomIdSorting(self):
         self.appendNewSorting("RAND()", True)
         return self
-
-    def differentMetadata(self, originalMetadata):
-        pass
 
     # creates a fake column for with a euclidian distance value. Columns are compared with an explicit value,
     # so values and columns need to correlate. Outputname is the Name of the fake column.

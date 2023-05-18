@@ -67,8 +67,8 @@ class similaritySearchModel:
             selected = ImageSelector.getMostDifferentImages(baseData, unselected, amountPerType)
             images.extend(selected)
 
-        for index, image in enumerate(images):
-            if int(image["idimage"]) == baseImageID:
+        for image in images:
+            if image["idimage"] == baseData["idimage"]:
                 image["isMain"] = True
             else:
                 image["isMain"] = False

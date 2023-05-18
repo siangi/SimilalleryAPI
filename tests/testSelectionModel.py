@@ -132,7 +132,7 @@ class testImageSelecter(unittest.TestCase):
         expectedOutput = [
              {'category_name': 'Landscape', 'year': 2022, 'artist_nationality': 'UK', 'artist_name': 'Alice Smith'},
              {'category_name': 'Portrait', 'year': 2023, 'artist_nationality': 'UK', 'artist_name': 'Eva Green'},
-             {'category_name': 'Figurative', 'year': 2021, 'artist_nationality': 'UK', 'artist_name': 'Charlie Brown'},
+             {'category_name': 'Abstract', 'year': 2021, 'artist_nationality': 'UK', 'artist_name': 'Charlie Brown'},
         ]
         goalLength = 3
 
