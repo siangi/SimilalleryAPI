@@ -1,3 +1,0 @@
-import unittest
-from models.selectionModel import ImageSelector
-from models.selectionModel import FILTER_MODES
