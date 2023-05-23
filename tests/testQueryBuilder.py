@@ -66,7 +66,7 @@ class testQueryBuilder(unittest.TestCase):
                 (l_3 BETWEEN 0 AND 20)
                 ORDER BY image.idimage ASC
             LIMIT 15"""
-        actual = builder.similarPalette(palette).appendNewSorting("image.idimage", True).buildQuery(LIMIT)
+        actual = builder.fullDataColumns().similarPalette(palette).appendNewSorting("image.idimage", True).buildQuery(LIMIT)
     
         # i used multiline strings for better readability, so i have to remove all of the whitespace
         # for easier comparison

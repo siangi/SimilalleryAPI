@@ -62,7 +62,7 @@ class similaritySearchModel:
                 case SEARCH_MODES.SALIENCY_RECT.value:
                     queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(baseData)
 
-            fullquery = queryBuilder.notMainImg(baseImageID).buildQuery(100, False)
+            fullquery = queryBuilder.webDataColumns().notMainImg(baseImageID).buildQuery(100)
             unselected = self.imgMapper.searchRecords(fullquery) 
             selected = ImageSelector.getMostDifferentImages(baseData, unselected, amountPerType)
             images.extend(selected)
@@ -77,14 +77,14 @@ class similaritySearchModel:
 
     def getRandomBaseImage(self):
         queryBuilder = imageQueryBuilder()
-        randomQuery = queryBuilder.randomIdSorting().buildQuery(1)
+        randomQuery = queryBuilder.fullDataColumns().randomIdSorting().buildQuery(1)
         possibles = self.imgMapper.searchRecords(randomQuery)
         if len(possibles) > 0:
             return possibles[0]
 
     def getBaseImageInfo(self, baseID):
         queryBuilder = imageQueryBuilder()
-        possibles = self.imgMapper.searchRecords(queryBuilder.imgByID(baseID).buildQuery(1))
+        possibles = self.imgMapper.searchRecords(queryBuilder.fullDataColumns().imgByID(baseID).buildQuery(1))
         if len(possibles) > 0:
             return possibles[0]
         

@@ -2,6 +2,7 @@ import numpy as np
 from decimal import *
 
 class imageQueryBuilder:
+    _SIMILARITY_COL_NAME = "similarity_val"
     columns: list
     filters: list
     sorting: list
@@ -12,22 +13,27 @@ class imageQueryBuilder:
         self.sorting = []
     
     #returns a query to search for images with conditions  from the member variable. Call this function last
-    def buildQuery(self, count: int, fullData: bool = True):
-        if fullData:
-            self.columns.extend(["image.*", "artist.name as artist_name" , "artist.nationalityID as artist_nationality","category.name as category_name"])
-        if not fullData:
-            self.columns.extend(["image.idimage","image.title","image.year","image.URL","artist.name as artist_name", "artist.nationalityID as artist_nationality","category.name as category_name"])
-
+    def buildQuery(self, count: int):
         return f"""SELECT {",".join(self.columns)} FROM scheme_test_similallery.image 
             INNER JOIN artist ON image.artist_id = artist.idartist 
             INNER JOIN category ON category.idcategory = image.category_id
             {"WHERE " + "AND".join(self.filters) if len(self.filters) > 0 else "" }
             {'ORDER BY ' + ', '.join(self.sorting) if len(self.sorting) > 0 else 'ORDER BY image.idimage'}
             LIMIT {count}"""
+    
+    def fullDataColumns(self):
+        self.columns.extend(["image.*", "artist.name as artist_name" , "artist.nationalityID as artist_nationality","category.name as category_name"])
+        return self
+    
+    # return only the columns need for display online
+    def webDataColumns(self):
+        self.columns.extend(["image.*", "artist.name as artist_name" , "artist.nationalityID as artist_nationality","category.name as category_name"])
+        return self
 
     def clearConditions(self):
         self.filters = []
         self.sorting = []
+        self.columns = []
         return self
 
     def imgByID(self, id:int):
@@ -85,12 +91,11 @@ class imageQueryBuilder:
     
     
     def paletteRatioSorting(self, baseRatios: dict):
-        COL_NAME = "palette_ratio_similarity"
         self.euclidianDistanceFakeColumn(
             [baseRatios["pal_ratio_1"], baseRatios["pal_ratio_2"], baseRatios["pal_ratio_3"], baseRatios["pal_ratio_4"], baseRatios["pal_ratio_5"]],
             ["pal_ratio_1", "pal_ratio_2", "pal_ratio_3", "pal_ratio_4", "pal_ratio_5"],
-            COL_NAME)
-        self.appendNewSorting(COL_NAME, True)
+            self._SIMILARITY_COL_NAME)
+        self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
 
 
     def similarAngleRatios(self, baseRatios):
@@ -106,7 +111,6 @@ class imageQueryBuilder:
         return self
 
     def angleRatioSorting(self, baseRatios):
-        COL_NAME = "angle_ratio_similarity"
         self.euclidianDistanceFakeColumn([
             baseRatios["angle_ratio_1"],
             baseRatios["angle_ratio_2"],
@@ -119,7 +123,7 @@ class imageQueryBuilder:
         ], 
         ["angle_ratio_1", "angle_ratio_2", "angle_ratio_3", "angle_ratio_4", "angle_ratio_5", "angle_ratio_6", "angle_ratio_7", "angle_ratio_8"],
         "angle_ratio_similarity")
-        self.appendNewSorting(COL_NAME, True)
+        self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
         return self
     
     def similarSaliencyCenter(self, baseCenter: tuple):
@@ -132,9 +136,8 @@ class imageQueryBuilder:
         return self
     
     def saliencyCenterSorting(self, baseCenter: tuple):
-        COL_NAME = "sal_center_similarity"
         self.euclidianDistanceFakeColumn(baseCenter, ["sal_center_x", "sal_center_y"], COL_NAME)
-        self.appendNewSorting(COL_NAME, True)
+        self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
         return self
 
     def similarSaliencyRect(self, baseRect: dict):
@@ -158,10 +161,9 @@ class imageQueryBuilder:
         return self
     
     def saliencyRectSorting(self, baseRect: dict):
-        COL_NAME = "sal_rect_similarity"
         self.euclidianDistanceFakeColumn([baseRect["sal_rect_x"], baseRect["sal_rect_y"], baseRect["sal_rect_width"], baseRect["sal_rect_height"]],
-            ["sal_rect_x", "sal_rect_y", "sal_rect_width", "sal_rect_height"], COL_NAME)
-        self.appendNewSorting(COL_NAME, True)
+            ["sal_rect_x", "sal_rect_y", "sal_rect_width", "sal_rect_height"], self._SIMILARITY_COL_NAME)
+        self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
         return self
         
     def randomIdSorting(self):
