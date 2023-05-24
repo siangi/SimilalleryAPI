@@ -64,22 +64,25 @@ class imageQueryBuilder:
     
     def paletteSorting(self, palette: dict):
         SIMILARITY_DEPTH = 3
+        MAX_DISTANCE = Decimal("386.78")
 
+        calculations = []
         for index in range(1, SIMILARITY_DEPTH + 1):
-            COL_NAME = f"palette_similarity_{index}"
-            self.euclidianDistanceFakeColumn(
+            single = self.euclidianDistanceCalculation(
                 [palette[f"h_{index}"], palette[f"s_{index}"], palette[f"l_{index}"]],
                 [f"h_{index}", f"s_{index}", f"l_{index}"],
-                COL_NAME
             )
-            self.appendNewSorting(COL_NAME, True)
-
+            calculations.append(single)
+        
+        self.columns.append(f"round(({' + '.join(calculations)}) / {MAX_DISTANCE},2) as {self._SIMILARITY_COL_NAME}")
+        self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
         return self
 
     def similarPaletteRatios(self, baseRatios: dict):
         RATIO_DIFF = Decimal(0.1)
         SIMILARITY_DEPTH = 5
         RATIO_MAX = 1
+        
         
         for index in range(1, SIMILARITY_DEPTH + 1):
             colName = f"pal_ratio_{index}"
@@ -91,10 +94,11 @@ class imageQueryBuilder:
     
     
     def paletteRatioSorting(self, baseRatios: dict):
+        MAX_DISTANCE = Decimal("2.24")
         self.euclidianDistanceFakeColumn(
             [baseRatios["pal_ratio_1"], baseRatios["pal_ratio_2"], baseRatios["pal_ratio_3"], baseRatios["pal_ratio_4"], baseRatios["pal_ratio_5"]],
             ["pal_ratio_1", "pal_ratio_2", "pal_ratio_3", "pal_ratio_4", "pal_ratio_5"],
-            self._SIMILARITY_COL_NAME)
+            MAX_DISTANCE, self._SIMILARITY_COL_NAME)
         self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
 
 
@@ -111,6 +115,7 @@ class imageQueryBuilder:
         return self
 
     def angleRatioSorting(self, baseRatios):
+        MAX_DISTANCE = Decimal("2.82")
         self.euclidianDistanceFakeColumn([
             baseRatios["angle_ratio_1"],
             baseRatios["angle_ratio_2"],
@@ -122,7 +127,8 @@ class imageQueryBuilder:
             baseRatios["angle_ratio_8"],
         ], 
         ["angle_ratio_1", "angle_ratio_2", "angle_ratio_3", "angle_ratio_4", "angle_ratio_5", "angle_ratio_6", "angle_ratio_7", "angle_ratio_8"],
-        "angle_ratio_similarity")
+        MAX_DISTANCE,
+        self._SIMILARITY_COL_NAME)
         self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
         return self
     
@@ -136,7 +142,8 @@ class imageQueryBuilder:
         return self
     
     def saliencyCenterSorting(self, baseCenter: tuple):
-        self.euclidianDistanceFakeColumn(baseCenter, ["sal_center_x", "sal_center_y"], COL_NAME)
+        MAX_DISTANCE = Decimal("141.42")
+        self.euclidianDistanceFakeColumn(baseCenter, ["sal_center_x", "sal_center_y"], MAX_DISTANCE, self._SIMILARITY_COL_NAME)
         self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
         return self
 
@@ -161,28 +168,33 @@ class imageQueryBuilder:
         return self
     
     def saliencyRectSorting(self, baseRect: dict):
+        MAX_DISTANCE = Decimal("200")
         self.euclidianDistanceFakeColumn([baseRect["sal_rect_x"], baseRect["sal_rect_y"], baseRect["sal_rect_width"], baseRect["sal_rect_height"]],
-            ["sal_rect_x", "sal_rect_y", "sal_rect_width", "sal_rect_height"], self._SIMILARITY_COL_NAME)
+            ["sal_rect_x", "sal_rect_y", "sal_rect_width", "sal_rect_height"],MAX_DISTANCE, self._SIMILARITY_COL_NAME)
         self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
         return self
         
     def randomIdSorting(self):
         self.appendNewSorting("RAND()", True)
         return self
-
-    # creates a fake column for with a euclidian distance value. Columns are compared with an explicit value,
-    # so values and columns need to correlate. Outputname is the Name of the fake column.
-    def euclidianDistanceFakeColumn(self, values, columns, outputName):
+    
+    # creates the calculation for the similarity_val. "eucldianDistanceFakeColumn" creates a full column with just one of these
+    # put it in its own function because I need to put multiple ones together for the palette sorting
+    def euclidianDistanceCalculation(self, values, columns):
         if (len(values) != len(columns)):
             raise Exception("unequal Values and Columns in euclidian Distance" + str(values) + str(columns))
 
         factors = []
         for idx in range(0, len(values)):
             factors.append(f"pow({values[idx]} - {columns[idx]}, 2)")
+        
+        return f"sqrt({' + '.join(factors)})"
 
-        self.columns.append(f"round(sqrt({' + '.join(factors)}), 2) as {outputName}")
+    # creates a fake column for with a euclidian distance value. Columns are compared with an explicit value,
+    # so values and columns need to correlate. MaximumDistance is just that and used to map the values to a range of 0 to 1 Outputname is the Name of the fake column.
+    def euclidianDistanceFakeColumn(self, values, columns, maximumDistance: Decimal, outputName: str):
+        self.columns.append(f"round(({self.euclidianDistanceCalculation(values, columns)}) / {maximumDistance}, 5) as {outputName}")
         return self
-
 
     def notMainImg(self, mainID):
         self.filters.append(f"(NOT idimage = {mainID})")

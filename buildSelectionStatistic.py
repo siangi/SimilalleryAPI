@@ -8,8 +8,9 @@ import time
 # for easier calculation of the overall statistic afterwards
 class queryStatistic:
     baseID: int
-    similarityValues: List[Decimal]
-    averageSimilarity: Decimal
+    similarityValues: List[float]
+    similarityMean: float
+    similarityDeviation: float
     # all the Lists here should only have unique Values
     indexes: List[int]
     artists: List[int]
@@ -31,6 +32,8 @@ class queryStatistic:
         self.nationalities = []
         self.categories = []
         self.years = []
+        self.similarityMean = -1.0
+        self.similarityDeviation = -1.0
 
 class statisticBuilder: 
     def tryFindImagesWithToFewResults():
@@ -40,7 +43,7 @@ class statisticBuilder:
         counter = 0
         for Id in randomIDs:
             try:
-                model.getImageListBySimilarity([SEARCH_MODES.SALIENCY_RECT], 30, Id["idimage"])
+                model.getImageListBySimilarity([1], 30, Id["idimage"])
             except Exception as ex :
                 print(print(ex))
                 counter += 1
@@ -62,7 +65,7 @@ class statisticBuilder:
         imageData = []
         model = similaritySearchModel()
         for record in randomRecords:
-            similars = model.getImageListBySimilarity(searchModes, 10, record["idimage"])
+            similars = model.getImageListBySimilarity(searchModes, SIMILAR_IMAGES_COUNT, record["idimage"])
             queryData = statisticBuilder.createQueryStatistic(similars, record["idimage"])
             imageData.append(queryData)
 
@@ -77,8 +80,12 @@ class statisticBuilder:
             statistic.categories.append(similar["category_id"])
             statistic.nationalities.append(similar["artist_nationality"])
             statistic.years.append(similar["year"])
-            # statistic.similarityValues.append(similar["similarity_Val"])
+            if(similar["idimage"] != baseID):
+                statistic.similarityValues.append(similar["similarity_val"])
             statistic.cleanAllDuplicates()
+
+        statistic.similarityMean = pystat.mean(statistic.similarityValues)
+        statistic.similarityDeviation = pystat.stdev(statistic.similarityValues)
 
         return statistic
 
@@ -88,6 +95,7 @@ class statisticBuilder:
         nationLengths = []
         yearLengths = []
         indexLengths = []
+        similarityMeans = []
 
         for query in queriesData:
             indexLengths.append(len(query.indexes))
@@ -95,8 +103,10 @@ class statisticBuilder:
             categoryLengths.append(len(query.categories))
             nationLengths.append(len(query.nationalities))
             yearLengths.append(len(query.years))
+            similarityMeans.append(query.similarityMean)
 
         return {
+            "similarityStats": { "mean": round(pystat.mean(similarityMeans), 5), "median": round(pystat.median(similarityMeans), 5), "stdDeviation": round(pystat.stdev(similarityMeans), 5)},
             "artistStats": {"mean": round(pystat.mean(artistLengths), 2), "median": round(pystat.median(artistLengths), 2), "stdDeviation": round(pystat.stdev(artistLengths), 2)},
             "categoryStats": {"mean": round(pystat.mean(categoryLengths), 2), "median": round(pystat.median(categoryLengths), 2), "stdDeviation": round(pystat.stdev(categoryLengths), 2)},
             "nationStats": {"mean": round(pystat.mean(nationLengths), 2), "median": round(pystat.median(nationLengths), 2), "stdDeviation": round(pystat.stdev(nationLengths), 2)},
@@ -105,13 +115,14 @@ class statisticBuilder:
         }
 
     def createSelectionStatistcs():
-        startTime = time.time()
-        queries = statisticBuilder.CollectImageData([4], 1000)
-        overall = statisticBuilder.calculateOverallStatistcs(queries)
-        endTime = time.time()
-        print(f"time elapsed: {(endTime - startTime)}")
-        for key in overall:
-            print(key, overall[key])
+        for idx in range(0, 5):
+            startTime = time.time()
+            queries = statisticBuilder.CollectImageData([idx], 1000)
+            overall = statisticBuilder.calculateOverallStatistcs(queries)
+            endTime = time.time()
+            print(f"time elapsed: {(endTime - startTime)}")
+            for key in overall:
+                print(key, overall[key])
 
 if __name__ == '__main__':
     print("try build statistics")

@@ -34,11 +34,11 @@ class testQueryBuilder(unittest.TestCase):
         self.assertEqual(builder.filters, expectedOutput)
 
     def testEuclidianDistanceColumn(self):
-        input = {"values": [0, 1, 2], "columns": ["test_1", "test_2", "test_3"], "name": "test_name"}
-        expected = "round(sqrt(pow(0 - test_1, 2) + pow(1 - test_2, 2) + pow(2 - test_3, 2)), 2) as test_name"
+        input = {"values": [0, 1, 2], "columns": ["test_1", "test_2", "test_3"], "max_distance": 100, "name": "test_name"}
+        expected = "round((sqrt(pow(0 - test_1, 2) + pow(1 - test_2, 2) + pow(2 - test_3, 2))) / 100, 5) as test_name"
 
         builder = imageQueryBuilder()
-        builder.euclidianDistanceFakeColumn(input["values"], input["columns"], input["name"])
+        builder.euclidianDistanceFakeColumn(input["values"], input["columns"], input["max_distance"], input["name"])
         self.assertTrue(expected in builder.columns)
 
     def testNewSorting(self):

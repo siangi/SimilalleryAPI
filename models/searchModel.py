@@ -40,6 +40,8 @@ class similaritySearchModel:
         else:
             baseData = self.getBaseImageInfo(baseImageID)
 
+        baseData["similarity_val"] = 0.00
+
         queryBuilder = imageQueryBuilder()
         images = [baseData]
         for searchType in searchTypes:
@@ -63,9 +65,10 @@ class similaritySearchModel:
                     queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(baseData)
 
             fullquery = queryBuilder.webDataColumns().notMainImg(baseImageID).buildQuery(100)
-            unselected = self.imgMapper.searchRecords(fullquery) 
-            selected = ImageSelector.getMostDifferentImages(baseData, unselected, amountPerType)
-            images.extend(selected)
+            # print(fullquery)
+            uncurated = self.imgMapper.searchRecords(fullquery) 
+            curated = ImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            images.extend(curated)
 
         for image in images:
             if image["idimage"] == baseData["idimage"]:
