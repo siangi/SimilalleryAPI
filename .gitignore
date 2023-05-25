@@ -3,3 +3,4 @@
 ./database/connection.py
 */connection.py
 .vscode/settings.json
+logs/*
