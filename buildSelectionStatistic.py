@@ -129,7 +129,7 @@ class statisticBuilder:
         SAMPLE_SIZE = 1000
         logging.basicConfig(filename="./logs/statsticsLogs.log", encoding="UTF-8", level=logging.DEBUG)
         logging.info("----------------------------")
-        logging.info(f"build statistics without selection {time.strftime('%b %d %Y %H:%M:%S', time.localtime())}")
+        logging.info(f"build statistics with singular selection {time.strftime('%b %d %Y %H:%M:%S', time.localtime())}")
         for idx in range(0, 5):
             try:
                 logging.info(f"testing category: {idx} with sample Size {SAMPLE_SIZE}")
@@ -145,6 +145,8 @@ class statisticBuilder:
                 continue
 
 if __name__ == '__main__':
-    print("try build statistics")
+    print("building statistics")
     
     statisticBuilder.createSelectionStatistcs()
+
+    print("done, see log for details")

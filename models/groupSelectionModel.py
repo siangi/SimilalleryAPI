@@ -2,15 +2,17 @@ from models.baseSelectionModel import FILTER_MODES, baseSelectionModel
 
 
 # select images in groups based on their difference to the baseData
-class ImageSelector(baseSelectionModel):
-    def getMostDifferentImages(baseData: dict, inputList: list, goalLength: int):
-        
+class GroupImageSelector(baseSelectionModel):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def getMostDifferentImages(baseData: dict, inputList: list, goalLength: int): 
         outputList = []
         inputCopy = inputList.copy()
         filterList = [FILTER_MODES.CATEGORY, FILTER_MODES.ORIGIN_YEAR, FILTER_MODES.NATIONALITY, FILTER_MODES.ARTIST]
         
         while len(filterList) > 0 and len(outputList) < goalLength:
-            filtered: list = ImageSelector.filterByMultipleCriteria(baseData, inputCopy, filterList)
+            filtered: list = GroupImageSelector.filterByMultipleCriteria(baseData, inputCopy, filterList)
 
             spacesToFill = goalLength - len(outputList)
             if(len(filtered) <= spacesToFill):
@@ -22,8 +24,7 @@ class ImageSelector(baseSelectionModel):
             filterList = filterList[1:]
         
         return outputList
-
-
+    
     def filterByMultipleCriteria(baseData: dict, inputList: list, filters: list[FILTER_MODES]) -> list:
         filtered: list = inputList
         
@@ -31,5 +32,3 @@ class ImageSelector(baseSelectionModel):
             filtered = list(filter(lambda element: element[filterCrit.value] != baseData[filterCrit.value], filtered))
 
         return filtered
-
-    

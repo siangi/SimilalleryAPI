@@ -2,7 +2,8 @@ from enum import Enum
 from database.imageMapper import imageMapper
 import database.connection as connection
 from database.queryBuilder import imageQueryBuilder
-from models.groupSelectionModel import ImageSelector
+from models.groupSelectionModel import GroupImageSelector
+from models.singularSelectionModel import SingularImageSelector
 
 class SEARCH_MODES(Enum):
     PALETTE: int = 0
@@ -64,10 +65,10 @@ class similaritySearchModel:
                 case SEARCH_MODES.SALIENCY_RECT.value:
                     queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(baseData)
 
-            fullquery = queryBuilder.webDataColumns().notMainImg(baseImageID).buildQuery(100)
+            fullquery = queryBuilder.webDataColumns().notMainImg(baseImageID).buildQuery(amountPerType - 1)
             # print(fullquery)
             uncurated = self.imgMapper.searchRecords(fullquery) 
-            curated = ImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            curated = SingularImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
             images.extend(curated)
 
         for image in images:
