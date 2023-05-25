@@ -34,11 +34,11 @@ class testQueryBuilder(unittest.TestCase):
         self.assertEqual(builder.filters, expectedOutput)
 
     def testEuclidianDistanceColumn(self):
-        input = {"values": [0, 1, 2], "columns": ["test_1", "test_2", "test_3"], "name": "test_name"}
-        expected = "round(sqrt(pow(0 - test_1, 2) + pow(1 - test_2, 2) + pow(2 - test_3, 2)), 2) as test_name"
+        input = {"values": [0, 1, 2], "columns": ["test_1", "test_2", "test_3"], "max_distance": 100, "name": "test_name"}
+        expected = "round((sqrt(pow(0 - test_1, 2) + pow(1 - test_2, 2) + pow(2 - test_3, 2))) / 100, 5) as test_name"
 
         builder = imageQueryBuilder()
-        builder.euclidianDistanceFakeColumn(input["values"], input["columns"], input["name"])
+        builder.euclidianDistanceFakeColumn(input["values"], input["columns"], input["max_distance"], input["name"])
         self.assertTrue(expected in builder.columns)
 
     def testNewSorting(self):
@@ -54,18 +54,19 @@ class testQueryBuilder(unittest.TestCase):
         palette = ({"h_1": 100, "s_1": 50, "l_1": 50, "h_2": 360, "s_2": 100, "l_2": 100, "h_3": 0, "s_3": 0, "l_3": 0})
         builder = imageQueryBuilder()
         LIMIT = 15
-        EXPECTED = """SELECT image.*, artist.name as artist_name, category.name as category_name FROM scheme_test_similallery.image
-            INNER JOIN artist ON image.artist_id = artist.idartist INNER JOIN category ON category.idcategory = image.category_id
-            WHERE (h_1 BETWEEN 85 AND 115) AND
-                (s_1 BETWEEN 40 AND 60) AND
-                (l_1 BETWEEN 40 AND 60) AND (h_2 BETWEEN 345 AND 360) AND
-                (s_2 BETWEEN 90 AND 100) AND
-                (l_2 BETWEEN 90 AND 100) AND (h_3 BETWEEN 0 AND 15) AND
-                (s_3 BETWEEN 0 AND 10) AND
-                (l_3 BETWEEN 0 AND 10)
-            ORDER BY image.idimage ASC
+        EXPECTED = """SELECT image.*,artist.name as artist_name,artist.nationalityID as artist_nationality,category.name as category_name FROM scheme_test_similallery.image 
+            INNER JOIN artist ON image.artist_id = artist.idartist 
+            INNER JOIN category ON category.idcategory = image.category_id
+            WHERE (h_1 BETWEEN 80 AND 120) AND 
+                (s_1 BETWEEN 30 AND 70) AND 
+                (l_1 BETWEEN 30 AND 70)AND(h_2 BETWEEN 340 AND 360) AND 
+                (s_2 BETWEEN 80 AND 100) AND 
+                (l_2 BETWEEN 80 AND 100)AND(h_3 BETWEEN 0 AND 20) AND 
+                (s_3 BETWEEN 0 AND 20) AND 
+                (l_3 BETWEEN 0 AND 20)
+                ORDER BY image.idimage ASC
             LIMIT 15"""
-        actual = builder.similarPalette(palette).appendNewSorting("image.idimage", True).buildQuery(LIMIT)
+        actual = builder.fullDataColumns().similarPalette(palette).appendNewSorting("image.idimage", True).buildQuery(LIMIT)
     
         # i used multiline strings for better readability, so i have to remove all of the whitespace
         # for easier comparison

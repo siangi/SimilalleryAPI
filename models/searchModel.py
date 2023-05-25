@@ -2,6 +2,7 @@ from enum import Enum
 from database.imageMapper import imageMapper
 import database.connection as connection
 from database.queryBuilder import imageQueryBuilder
+from models.selectionModel import ImageSelector
 
 class SEARCH_MODES(Enum):
     PALETTE: int = 0
@@ -33,44 +34,60 @@ class similaritySearchModel:
 
     def getImageListBySimilarity(self, searchTypes: list, amountPerType: int, baseImageID: int):
         #dev. write mapper, that creates the palette.
-        baseData = self.getBaseImageInfo(baseImageID)
+        baseData = None
+        if baseImageID == -1:
+            baseData = self.getRandomBaseImage()
+        else:
+            baseData = self.getBaseImageInfo(baseImageID)
+
+        baseData["similarity_val"] = 0.00
+
         queryBuilder = imageQueryBuilder()
         images = [baseData]
         for searchType in searchTypes:
             queryBuilder.clearConditions()
             # restore these to the ENUM when I find out hwo
             match searchType:
-                case 0:
+                case SEARCH_MODES.PALETTE.value:
                     queryBuilder.similarPalette(baseData).paletteSorting(baseData)
 
-                case 1:
+                case SEARCH_MODES.PALETTE_RATIOS.value:
                     queryBuilder.similarPaletteRatios(baseData).paletteRatioSorting(baseData)
                     
-                case 2:
+                case SEARCH_MODES.ANGLE_RATIOS.value:
                     queryBuilder.similarAngleRatios(baseData).angleRatioSorting(baseData)  
                 
-                case 3:
+                case SEARCH_MODES.SALIENCY_CENTER.value:
                     center = (baseData["sal_center_x"], baseData["sal_center_y"])
                     queryBuilder.similarSaliencyCenter(center).saliencyCenterSorting(center)
 
-                case 4:
+                case SEARCH_MODES.SALIENCY_RECT.value:
                     queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(baseData)
 
-            fullquery = queryBuilder.notMainImg(baseImageID).buildQuery(amountPerType, False)
-            images.extend(self.imgMapper.searchRecords(fullquery))
-            print(fullquery)
-            
-        for index, image in enumerate(images):
-            if int(image["idimage"]) == baseImageID:
+            fullquery = queryBuilder.webDataColumns().notMainImg(baseImageID).buildQuery(100)
+            # print(fullquery)
+            uncurated = self.imgMapper.searchRecords(fullquery) 
+            curated = ImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            images.extend(curated)
+
+        for image in images:
+            if image["idimage"] == baseData["idimage"]:
                 image["isMain"] = True
             else:
                 image["isMain"] = False
 
         return self._removeDoublesById(images)      
 
+    def getRandomBaseImage(self):
+        queryBuilder = imageQueryBuilder()
+        randomQuery = queryBuilder.fullDataColumns().randomIdSorting().buildQuery(1)
+        possibles = self.imgMapper.searchRecords(randomQuery)
+        if len(possibles) > 0:
+            return possibles[0]
+
     def getBaseImageInfo(self, baseID):
         queryBuilder = imageQueryBuilder()
-        possibles = self.imgMapper.searchRecords(queryBuilder.imgByID(baseID).buildQuery(1))
+        possibles = self.imgMapper.searchRecords(queryBuilder.fullDataColumns().imgByID(baseID).buildQuery(1))
         if len(possibles) > 0:
             return possibles[0]
         
