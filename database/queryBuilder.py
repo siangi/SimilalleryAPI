@@ -42,8 +42,8 @@ class imageQueryBuilder:
 
     def similarPalette(self, palette: dict):
         H_DIFFERENCE = 20
-        S_DIFFERENCE = 20
-        L_DIFFERENCE = 20
+        S_DIFFERENCE = 50
+        L_DIFFERENCE = 30
         MAX_H = 360
         MAX_S = 100
         MAX_L = 100
@@ -74,7 +74,7 @@ class imageQueryBuilder:
             )
             calculations.append(single)
         
-        self.columns.append(f"round(({' + '.join(calculations)}) / {MAX_DISTANCE},2) as {self._SIMILARITY_COL_NAME}")
+        self.columns.append(f"round(({' + '.join(calculations)}) / {MAX_DISTANCE * SIMILARITY_DEPTH},2) as {self._SIMILARITY_COL_NAME}")
         self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
         return self
 
@@ -148,8 +148,8 @@ class imageQueryBuilder:
         return self
 
     def similarSaliencyRect(self, baseRect: dict):
-        RECT_DIFF = 5
-        MIN_VAL = 0
+        RECT_DIFF = 15
+        MIN_VAL = 8
         MAX_VAL = 100
         rectXmin = max(baseRect["sal_rect_x"] - RECT_DIFF, MIN_VAL)
         rectXmax = min(baseRect["sal_rect_x"] + RECT_DIFF, MAX_VAL)
