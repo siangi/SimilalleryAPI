@@ -4,8 +4,6 @@ from models.baseSelectionModel import FILTER_MODES, baseSelectionModel
 # select images in groups based on their difference to the baseData
 class ImageSelector(baseSelectionModel):
     def getMostDifferentImages(baseData: dict, inputList: list, goalLength: int):
-        if(len(inputList) < goalLength):
-            raise Exception(f"Cannot fill the List, not enough Input {len(inputList)}!")
         
         outputList = []
         inputCopy = inputList.copy()

@@ -139,11 +139,6 @@ class testImageSelecter(unittest.TestCase):
         # Test that the output list has the correct length
         outputList = ImageSelector.getMostDifferentImages(basedata, inputList, goalLength)
         self.assertListEqual(outputList, expectedOutput)
-        
-        # Test that an exception is raised when goalLength is greater than the number of input images
-        with self.assertRaises(Exception):
-            ImageSelector.getMostDifferentImages(basedata, inputList, len(inputList)+1)
-
 
 
 
