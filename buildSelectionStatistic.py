@@ -4,6 +4,7 @@ from models.searchModel import similaritySearchModel, SEARCH_MODES
 from database.imageMapper import imageMapper
 import statistics as pystat
 import time
+import logging
 
 # for easier calculation of the overall statistic afterwards
 class queryStatistic:
@@ -43,11 +44,10 @@ class statisticBuilder:
         counter = 0
         for Id in randomIDs:
             try:
-                model.getImageListBySimilarity([1], 30, Id["idimage"])
+                model.getImageListBySimilarity([2], 25, Id["idimage"])
             except Exception as ex :
-                print(print(ex))
                 counter += 1
-                print(Id)
+                print(Id, counter, ex)
         
         print("amount of failing Ids" + str(counter))
 
@@ -84,8 +84,19 @@ class statisticBuilder:
                 statistic.similarityValues.append(similar["similarity_val"])
             statistic.cleanAllDuplicates()
 
-        statistic.similarityMean = pystat.mean(statistic.similarityValues)
-        statistic.similarityDeviation = pystat.stdev(statistic.similarityValues)
+        try:
+            if(len(similars) == 1 and similars[0]["idimage"] != baseID):
+                statistic.similarityMean = statistic.similarityValues[0]
+                statistic.similarityDeviation = 0
+            elif(len(similars) < 3):
+                statistic.similarityMean = 0.5
+                statistic.similarityDeviation = 0.5
+            else:
+                statistic.similarityMean = pystat.mean(statistic.similarityValues)
+                statistic.similarityDeviation = pystat.stdev(statistic.similarityValues) 
+        except Exception as e:
+            raise UserWarning(f"{e} with baseID {baseID} and amount {len(similars)}") from e
+
 
         return statistic
 
@@ -115,15 +126,25 @@ class statisticBuilder:
         }
 
     def createSelectionStatistcs():
+        SAMPLE_SIZE = 1000
+        logging.basicConfig(filename="./logs/statsticsLogs.log", encoding="UTF-8", level=logging.DEBUG)
+        logging.info("----------------------------")
+        logging.info(f"build statistics without selection {time.strftime('%b %d %Y %H:%M:%S', time.localtime())}")
         for idx in range(0, 5):
-            startTime = time.time()
-            queries = statisticBuilder.CollectImageData([idx], 1000)
-            overall = statisticBuilder.calculateOverallStatistcs(queries)
-            endTime = time.time()
-            print(f"time elapsed: {(endTime - startTime)}")
-            for key in overall:
-                print(key, overall[key])
+            try:
+                logging.info(f"testing category: {idx} with sample Size {SAMPLE_SIZE}")
+                startTime = time.time()
+                queries = statisticBuilder.CollectImageData([idx], SAMPLE_SIZE)
+                overall = statisticBuilder.calculateOverallStatistcs(queries)
+                endTime = time.time()
+                logging.info(f"time elapsed: {(endTime - startTime)}")
+                for key in overall:
+                    logging.info(f"{key}: {overall[key]}")
+            except Exception as e:
+                logging.error(e)
+                continue
 
 if __name__ == '__main__':
     print("try build statistics")
+    
     statisticBuilder.createSelectionStatistcs()
