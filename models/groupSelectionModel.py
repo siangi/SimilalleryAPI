@@ -1,16 +1,11 @@
+from models.baseSelectionModel import FILTER_MODES, baseSelectionModel
 
-from enum import Enum
 
-class FILTER_MODES(Enum):
-    CATEGORY: str = "category_name"
-    ORIGIN_YEAR: int = "year"
-    NATIONALITY: int = "artist_nationality"
-    ARTIST: int = "artist_name"
-
-class ImageSelector:
+# select images in groups based on their difference to the baseData
+class ImageSelector(baseSelectionModel):
     def getMostDifferentImages(baseData: dict, inputList: list, goalLength: int):
         if(len(inputList) < goalLength):
-            raise Exception("Cannot fill the List, not enough Input!")
+            raise Exception(f"Cannot fill the List, not enough Input {len(inputList)}!")
         
         outputList = []
         inputCopy = inputList.copy()

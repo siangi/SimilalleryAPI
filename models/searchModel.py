@@ -2,7 +2,7 @@ from enum import Enum
 from database.imageMapper import imageMapper
 import database.connection as connection
 from database.queryBuilder import imageQueryBuilder
-from models.selectionModel import ImageSelector
+from models.groupSelectionModel import ImageSelector
 
 class SEARCH_MODES(Enum):
     PALETTE: int = 0

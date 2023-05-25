@@ -34,4 +34,5 @@ async def similarFromExisting(baseId: int, imageCount: int, similarityCriteria: 
 
 if __name__ == "__main__":
     model = similaritySearchModel()
-    model.getImageListBySimilarity([2], 100, 32531)
+    similars = model.getImageListBySimilarity([0], 25, 70717)
+    print(len(similars))

@@ -1,6 +1,6 @@
 import unittest
-from models.selectionModel import ImageSelector
-from models.selectionModel import FILTER_MODES
+from models.groupSelectionModel import ImageSelector
+from models.baseSelectionModel import FILTER_MODES
 
 
 #most of these tests were written by ChatGPT and controlled by me
