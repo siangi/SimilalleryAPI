@@ -33,7 +33,7 @@ class similaritySearchModel:
         return list(unique.values()) 
 
 
-    def getImageListBySimilarity(self, searchTypes: list, amountPerType: int, baseImageID: int):
+    def getImageListBySimilarity(self, searchTypes: list, amountPerType: int, baseImageID: int, selectionModel: str = "group"):
         #dev. write mapper, that creates the palette.
         baseData = None
         if baseImageID == -1:
@@ -65,10 +65,17 @@ class similaritySearchModel:
                 case SEARCH_MODES.SALIENCY_RECT.value:
                     queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(baseData)
 
-            fullquery = queryBuilder.webDataColumns().notMainImg(baseImageID).buildQuery(amountPerType - 1)
+            fullquery = queryBuilder.webDataColumns().notMainImg(baseImageID).buildQuery(100)
             # print(fullquery)
             uncurated = self.imgMapper.searchRecords(fullquery) 
-            curated = SingularImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            curated = []
+            if(selectionModel == "singular"):
+                curated = SingularImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            elif(selectionModel == "group"):
+                curated = GroupImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            else:
+                curated = uncurated[0:amountPerType - 1] 
+
             images.extend(curated)
 
         for image in images:

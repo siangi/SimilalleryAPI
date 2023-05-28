@@ -29,7 +29,7 @@ async def root():
 async def similarFromExisting(baseId: int, imageCount: int, similarityCriteria: Annotated[list[int]| None, Query()] = None):
     countPerCategory = (imageCount / len(similarityCriteria)).__floor__()
     searcher = similaritySearchModel()
-    similars = searcher.getImageListBySimilarity(similarityCriteria, countPerCategory, baseId)
+    similars = searcher.getImageListBySimilarity(similarityCriteria, countPerCategory, baseId, "singular")
     return {"message": similars}
 
 if __name__ == "__main__":
