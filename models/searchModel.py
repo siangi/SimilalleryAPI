@@ -14,11 +14,7 @@ class SEARCH_MODES(Enum):
     
 class similaritySearchModel:
     imgMapper: imageMapper
-    # searchFor the base record by ID
-    # create a searchstring for each type searched
-    # execute said searchstring
-    # extract relevant data
-    # return list of images 
+
     def __init__(self, mapper = None) -> None:
         if mapper == None:
             self.imgMapper = imageMapper()
@@ -34,7 +30,6 @@ class similaritySearchModel:
 
 
     def getImageListBySimilarity(self, searchTypes: list, amountPerType: int, baseImageID: int, selectionModel: str = "group"):
-        #dev. write mapper, that creates the palette.
         baseData = None
         if baseImageID == -1:
             baseData = self.getRandomBaseImage()
@@ -46,8 +41,9 @@ class similaritySearchModel:
         queryBuilder = imageQueryBuilder()
         images = [baseData]
         for searchType in searchTypes:
-            queryBuilder.clearConditions()
-            # restore these to the ENUM when I find out hwo
+            # clean all info from the other search tipes
+            queryBuilder.reset()
+           
             match searchType:
                 case SEARCH_MODES.PALETTE.value:
                     queryBuilder.similarPalette(baseData).paletteSorting(baseData)
@@ -66,7 +62,7 @@ class similaritySearchModel:
                     queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(baseData)
 
             fullquery = queryBuilder.webDataColumns().notMainImg(baseImageID).buildQuery(100)
-            # print(fullquery)
+
             uncurated = self.imgMapper.searchRecords(fullquery) 
             curated = []
             if(selectionModel == "singular"):

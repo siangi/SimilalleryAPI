@@ -39,6 +39,7 @@ class queryStatistic:
 class statisticBuilder: 
     SAMPLE_SIZE = 1000
 
+    # was used to adjust the search ranges for each criteria
     def tryFindImagesWithToFewResults():
         SampleSize = 10000
         randomIDs = statisticBuilder.getListOfRandomImageIDs(SampleSize)
@@ -54,7 +55,7 @@ class statisticBuilder:
         print("amount of failing Ids" + str(counter))
 
     def getListOfRandomImageIDs(length) -> List[dict]:
-        # sollte das auch in querybuilder eingebaut werden?
+
         query = f"SELECT idimage from image ORDER BY RAND() LIMIT {length}"
         mapper = imageMapper()
         

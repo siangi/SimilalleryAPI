@@ -18,9 +18,11 @@ class GroupImageSelector(baseSelectionModel):
             if(len(filtered) <= spacesToFill):
                 outputList.extend(filtered)
             else:
+                #if there's not enough space in the list, get the most similar ones.
                 outputList.extend(filtered[0:spacesToFill - 1])
 
             inputCopy = list(filter(lambda element: element not in outputList, inputCopy))
+            #remove on filter, since we have the best fitting ones for this combination
             filterList = filterList[1:]
         
         return outputList

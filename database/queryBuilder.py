@@ -27,10 +27,10 @@ class imageQueryBuilder:
     
     # return only the columns need for display online
     def webDataColumns(self):
-        self.columns.extend(["image.*", "artist.name as artist_name" , "artist.nationalityID as artist_nationality","category.name as category_name"])
+        self.columns.extend(["image.idimage", "image.title", "image.year", "image.URL", "artist.name as artist_name" , "artist.nationalityID as artist_nationality","category.name as category_name"])
         return self
 
-    def clearConditions(self):
+    def reset(self):
         self.filters = []
         self.sorting = []
         self.columns = []
@@ -67,6 +67,7 @@ class imageQueryBuilder:
         MAX_DISTANCE = Decimal("386.78")
 
         calculations = []
+        # were comparing multiple colors, but the similarity is calculated for each color seperately
         for index in range(1, SIMILARITY_DEPTH + 1):
             single = self.euclidianDistanceCalculation(
                 [palette[f"h_{index}"], palette[f"s_{index}"], palette[f"l_{index}"]],
@@ -81,8 +82,7 @@ class imageQueryBuilder:
     def similarPaletteRatios(self, baseRatios: dict):
         RATIO_DIFF = Decimal(0.1)
         SIMILARITY_DEPTH = 5
-        RATIO_MAX = 1
-        
+        RATIO_MAX = 1        
         
         for index in range(1, SIMILARITY_DEPTH + 1):
             colName = f"pal_ratio_{index}"
@@ -92,7 +92,6 @@ class imageQueryBuilder:
 
         return self
     
-    
     def paletteRatioSorting(self, baseRatios: dict):
         MAX_DISTANCE = Decimal("2.24")
         self.euclidianDistanceFakeColumn(
@@ -100,7 +99,6 @@ class imageQueryBuilder:
             ["pal_ratio_1", "pal_ratio_2", "pal_ratio_3", "pal_ratio_4", "pal_ratio_5"],
             MAX_DISTANCE, self._SIMILARITY_COL_NAME)
         self.appendNewSorting(self._SIMILARITY_COL_NAME, True)
-
 
     def similarAngleRatios(self, baseRatios):
         RATIO_DIFF = Decimal(0.1)
@@ -149,7 +147,7 @@ class imageQueryBuilder:
 
     def similarSaliencyRect(self, baseRect: dict):
         RECT_DIFF = 15
-        MIN_VAL = 8
+        MIN_VAL = 0
         MAX_VAL = 100
         rectXmin = max(baseRect["sal_rect_x"] - RECT_DIFF, MIN_VAL)
         rectXmax = min(baseRect["sal_rect_x"] + RECT_DIFF, MAX_VAL)
@@ -210,6 +208,7 @@ class imageQueryBuilder:
         return self
 
 if __name__ == "__main__":
+    #for testing purposes
     builder = imageQueryBuilder()
     print(builder
           .similarSaliencyCenter((35, 35))
