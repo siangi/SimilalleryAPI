@@ -4,6 +4,7 @@ import database.connection as connection
 from database.queryBuilder import imageQueryBuilder
 from models.groupSelectionModel import GroupImageSelector
 from models.singularSelectionModel import SingularImageSelector
+from models.yearSelectionModel import YearImageSelector
 
 class SEARCH_MODES(Enum):
     PALETTE: int = 0
@@ -61,7 +62,7 @@ class similaritySearchModel:
                 case SEARCH_MODES.SALIENCY_RECT.value:
                     queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(baseData)
 
-            fullquery = queryBuilder.webDataColumns().notMainImg(baseImageID).buildQuery(100)
+            fullquery = queryBuilder.fullDataColumns().notMainImg(baseImageID).buildQuery(100)
 
             uncurated = self.imgMapper.searchRecords(fullquery) 
             curated = []
@@ -69,6 +70,8 @@ class similaritySearchModel:
                 curated = SingularImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
             elif(selectionModel == "group"):
                 curated = GroupImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            elif(selectionModel == "year"):
+                curated = YearImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
             else:
                 curated = uncurated[0:amountPerType - 1] 
 

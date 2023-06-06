@@ -55,15 +55,14 @@ class statisticBuilder:
         print("amount of failing Ids" + str(counter))
 
     def getListOfRandomImageIDs(length) -> List[dict]:
-
         query = f"SELECT idimage from image ORDER BY RAND() LIMIT {length}"
         mapper = imageMapper()
         
         return mapper.searchRecords(query)
     
-
+    
     def CollectSimilarImageData(searchModes: List[int], randomIDs, selectionMode) -> List[List[dict]]:
-        SIMILAR_IMAGES_COUNT = 10
+        SIMILAR_IMAGES_COUNT = 5
         imageData = []
         model = similaritySearchModel()
         for record in randomIDs:
@@ -130,7 +129,7 @@ class statisticBuilder:
     def createSelectionStatistcs(selectionType: str, baseIDs: list):
         logging.basicConfig(filename="./logs/statsticsLogs.log", encoding="UTF-8", level=logging.DEBUG)
         logging.info("----------------------------")
-        logging.info(f"build statistics with {selectionType} selection {time.strftime('%b %d %Y %H:%M:%S', time.localtime())}")
+        logging.info(f"build statistics with {selectionType} selection and 5 images instead of 10 {time.strftime('%b %d %Y %H:%M:%S', time.localtime())}")
         for idx in range(0, 5):
             try:
                 logging.info(f"testing category: {idx} with sample Size {statisticBuilder.SAMPLE_SIZE}")
