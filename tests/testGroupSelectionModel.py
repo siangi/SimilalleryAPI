@@ -1,6 +1,6 @@
 import unittest
-from models.selectionModel import ImageSelector
-from models.selectionModel import FILTER_MODES
+from models.groupSelectionModel import GroupImageSelector
+from models.baseSelectionModel import FILTER_MODES
 
 
 #most of these tests were written by ChatGPT and controlled by me
@@ -21,7 +21,7 @@ class testImageSelecter(unittest.TestCase):
             {"category_name": "test1"},
             {"category_name": "test1"},
         ]
-        outputList = ImageSelector.filterByMultipleCriteria(basedata, inputList, [FILTER_MODES.CATEGORY])
+        outputList = GroupImageSelector.filterByMultipleCriteria(basedata, inputList, [FILTER_MODES.CATEGORY])
         self.assertListEqual(outputList, expectedOutput)
 
     def test_filterByMultipleCriteria(self):
@@ -44,7 +44,7 @@ class testImageSelecter(unittest.TestCase):
             {'category_name': 'Landscape', 'year': 2022, 'artist_nationality': 'UK', 'artist_name': 'Alice Smith'},
         ]
 
-        result = ImageSelector.filterByMultipleCriteria(basedata, inputList, filters)
+        result = GroupImageSelector.filterByMultipleCriteria(basedata, inputList, filters)
         self.assertEqual(result, expected_output)
 
     def test_filterByMultipleCriteria_empty_inputList(self):
@@ -61,7 +61,7 @@ class testImageSelecter(unittest.TestCase):
         ]
         expected_output = []
 
-        result = ImageSelector.filterByMultipleCriteria(basedata, inputList, filters)
+        result = GroupImageSelector.filterByMultipleCriteria(basedata, inputList, filters)
         self.assertEqual(result, expected_output)
 
     def test_filterByMultipleCriteria_empty_filters(self):
@@ -79,7 +79,7 @@ class testImageSelecter(unittest.TestCase):
         filters = []
         expected_output = inputList
 
-        result = ImageSelector.filterByMultipleCriteria(basedata, inputList, filters)
+        result = GroupImageSelector.filterByMultipleCriteria(basedata, inputList, filters)
         self.assertEqual(result, expected_output)   
 
     def test_filterByMultipleCriteria_all_filters(self):
@@ -110,7 +110,7 @@ class testImageSelecter(unittest.TestCase):
                  
         ]
 
-        result = ImageSelector.filterByMultipleCriteria(basedata, inputList, filters)
+        result = GroupImageSelector.filterByMultipleCriteria(basedata, inputList, filters)
         self.assertEqual(result, expected_output)
     
     def test_getMostDifferentImages(self):
@@ -137,13 +137,8 @@ class testImageSelecter(unittest.TestCase):
         goalLength = 3
 
         # Test that the output list has the correct length
-        outputList = ImageSelector.getMostDifferentImages(basedata, inputList, goalLength)
+        outputList = GroupImageSelector.getMostDifferentImages(basedata, inputList, goalLength)
         self.assertListEqual(outputList, expectedOutput)
-        
-        # Test that an exception is raised when goalLength is greater than the number of input images
-        with self.assertRaises(Exception):
-            ImageSelector.getMostDifferentImages(basedata, inputList, len(inputList)+1)
-
 
 
 

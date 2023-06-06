@@ -21,17 +21,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
 @app.get("/similars/")
 async def similarFromExisting(baseId: int, imageCount: int, similarityCriteria: Annotated[list[int]| None, Query()] = None):
     countPerCategory = (imageCount / len(similarityCriteria)).__floor__()
     searcher = similaritySearchModel()
-    similars = searcher.getImageListBySimilarity(similarityCriteria, countPerCategory, baseId)
+    similars = searcher.getImageListBySimilarity(similarityCriteria, countPerCategory, baseId, "singular")
     return {"message": similars}
 
 if __name__ == "__main__":
+    #for testing purposes
     model = similaritySearchModel()
-    model.getImageListBySimilarity([2], 100, 32531)
+    similars = model.getImageListBySimilarity([4], 25, 70717)
+    print(len(similars))

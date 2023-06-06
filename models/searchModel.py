@@ -2,7 +2,8 @@ from enum import Enum
 from database.imageMapper import imageMapper
 import database.connection as connection
 from database.queryBuilder import imageQueryBuilder
-from models.selectionModel import ImageSelector
+from models.groupSelectionModel import GroupImageSelector
+from models.singularSelectionModel import SingularImageSelector
 
 class SEARCH_MODES(Enum):
     PALETTE: int = 0
@@ -13,11 +14,7 @@ class SEARCH_MODES(Enum):
     
 class similaritySearchModel:
     imgMapper: imageMapper
-    # searchFor the base record by ID
-    # create a searchstring for each type searched
-    # execute said searchstring
-    # extract relevant data
-    # return list of images 
+
     def __init__(self, mapper = None) -> None:
         if mapper == None:
             self.imgMapper = imageMapper()
@@ -32,8 +29,7 @@ class similaritySearchModel:
         return list(unique.values()) 
 
 
-    def getImageListBySimilarity(self, searchTypes: list, amountPerType: int, baseImageID: int):
-        #dev. write mapper, that creates the palette.
+    def getImageListBySimilarity(self, searchTypes: list, amountPerType: int, baseImageID: int, selectionModel: str = "group"):
         baseData = None
         if baseImageID == -1:
             baseData = self.getRandomBaseImage()
@@ -45,8 +41,9 @@ class similaritySearchModel:
         queryBuilder = imageQueryBuilder()
         images = [baseData]
         for searchType in searchTypes:
-            queryBuilder.clearConditions()
-            # restore these to the ENUM when I find out hwo
+            # clean all info from the other search tipes
+            queryBuilder.reset()
+           
             match searchType:
                 case SEARCH_MODES.PALETTE.value:
                     queryBuilder.similarPalette(baseData).paletteSorting(baseData)
@@ -65,9 +62,16 @@ class similaritySearchModel:
                     queryBuilder.similarSaliencyRect(baseData).saliencyRectSorting(baseData)
 
             fullquery = queryBuilder.webDataColumns().notMainImg(baseImageID).buildQuery(100)
-            # print(fullquery)
+
             uncurated = self.imgMapper.searchRecords(fullquery) 
-            curated = ImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            curated = []
+            if(selectionModel == "singular"):
+                curated = SingularImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            elif(selectionModel == "group"):
+                curated = GroupImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            else:
+                curated = uncurated[0:amountPerType - 1] 
+
             images.extend(curated)
 
         for image in images:
