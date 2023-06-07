@@ -145,9 +145,12 @@ class statisticBuilder:
                 print(e)
                 continue
 
+
+# vielleicht das ganze so umschreiben, das 100 mit "none" selektiert werden damit die effektiven datnabnk 
+#abfragen nur einmal gemacht werden müssen. Auf diese 100 können dann die Sleektionsalgorithmen losgelassen werden
 if __name__ == '__main__':
     print("building statistics")
-    selections = ["singular", "group", "none"]
+    selections = ["year", "singular", "group", "none"]
     baseIDs = statisticBuilder.getListOfRandomImageIDs(statisticBuilder.SAMPLE_SIZE)
 
     for selection in selections:

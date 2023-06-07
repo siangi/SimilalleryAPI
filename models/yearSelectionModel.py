@@ -7,6 +7,9 @@ class YearImageSelector(baseSelectionModel):
         outputList = []
         inputCopy = inputList.copy()
 
+        if(len(inputCopy) == 0):
+            return outputList
+
         minYear = min(inputCopy, key=lambda img: img["year"])["year"]
         maxYear = max(inputCopy, key=lambda img: img["year"])["year"]
         goalGap = (maxYear - minYear) / (goalLength - 1)

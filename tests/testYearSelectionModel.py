@@ -45,6 +45,16 @@ class testYearImageSelector(unittest.TestCase):
 
         actualOutput = YearImageSelector.getMostDifferentImages(baseData, inputList, goalLength)
         self.assertListEqual(actualOutput, expectedOutput)
+        
+    def testEmptyInput(self):
+        baseData ={}
+        inputList = []
+        expectedOutput = []
+        goalLength = 4
+
+        actualOutput = YearImageSelector.getMostDifferentImages(baseData, inputList, goalLength)
+        self.assertListEqual(actualOutput, expectedOutput)
+
 
 if __name__ == '__main__':
     unittest.main()
