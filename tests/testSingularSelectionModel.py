@@ -30,7 +30,7 @@ class testSingularImageSelector(unittest.TestCase):
         
         goalLength = 4
 
-        actualOutput = SingularImageSelector.getMostDifferentImages(basedata, inputList, goalLength)
+        actualOutput = SingularImageSelector.getMostDifferentImages([basedata], inputList, goalLength)
 
         self.assertListEqual(expectedOutput, actualOutput)
 
@@ -38,13 +38,18 @@ class testSingularImageSelector(unittest.TestCase):
     def testAddRecordValuesToDict(self):
         testData = [
             {"inputDict": { "key1": [], "key2": [], "key3": []},
-             "toAdd": {"key1": "val1", "key2": "val2", "key3": "val3", "key4": "val4"},
+             "toAdd": [{"key1": "val1", "key2": "val2", "key3": "val3", "key4": "val4"}],
              "expected": { "key1": ["val1"], "key2": ["val2"], "key3": ["val3"]}
              },
             {"inputDict": { "key1": ["existing1"], "key2": ["existing2"], "key3": ["existing3"]},
-             "toAdd": {"key1": "val1", "key2": "val2", "key3": "val3", "key4": "val4"},
+             "toAdd": [{"key1": "val1", "key2": "val2", "key3": "val3", "key4": "val4"}],
              "expected": { "key1": ["existing1", "val1"], "key2": ["existing2", "val2"], "key3": ["existing3", "val3"]}
-            }
+            },
+            {"inputDict": { "key1": ["existing1"], "key2": ["existing2"], "key3": ["existing3"]},
+             "toAdd": [{"key1": "val1", "key2": "val2", "key3": "val3", "key4": "val4"}, {"key1": "val1.2", "key2": "val2.2", "key3": "val3.2", "key4": "val4.2"}],
+             "expected": { "key1": ["existing1", "val1", "val1.2"], "key2": ["existing2", "val2", "val2.2"], "key3": ["existing3", "val3", "val3.2"]}
+            },
+
         ]
         
         for test in testData:

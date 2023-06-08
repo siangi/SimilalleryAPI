@@ -5,6 +5,9 @@ from typing import List
 # select images one by one based on their differences to all of the selected images.
 class SingularImageSelector(baseSelectionModel): 
     def getMostDifferentImages(baseData: dict, inputList: list, goalLength: int):
+        return SingularImageSelector.getMostDifferentImages([baseData], inputList, goalLength)
+
+    def getMostDifferentImages(baseData: List[dict], inputList: list, goalLength: int):
         outputList = []
         inputCopy = inputList.copy()
         containedValues = {
@@ -22,7 +25,7 @@ class SingularImageSelector(baseSelectionModel):
 
             if (len(filtered) > 0):
                 outputList.append(filtered[0])
-                SingularImageSelector.addRecordValuesToDict(containedValues, filtered[0])
+                SingularImageSelector.addRecordValuesToDict(containedValues, [filtered[0]])
                 inputCopy = list(filter(lambda element: element not in outputList, inputCopy))
             else:
                 filterList = filterList[1:]
@@ -34,9 +37,10 @@ class SingularImageSelector(baseSelectionModel):
 
         return outputList
 
-    def addRecordValuesToDict(containedValues: dict, toAdd: dict) -> dict:
+    def addRecordValuesToDict(containedValues: dict, listToAdd: List[dict]) -> dict:
         for key in containedValues:
-            containedValues[key].append(toAdd[key])
+            for toAdd in listToAdd:
+                containedValues[key].append(toAdd[key])
     
         return containedValues       
 

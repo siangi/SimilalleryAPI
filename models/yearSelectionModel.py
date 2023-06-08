@@ -1,5 +1,6 @@
 from models.groupSelectionModel import FILTER_MODES
 from models.baseSelectionModel import baseSelectionModel
+from models.singularSelectionModel import SingularImageSelector
 from typing import List
 
 class YearImageSelector(baseSelectionModel):
@@ -19,9 +20,17 @@ class YearImageSelector(baseSelectionModel):
                 break
 
             goalYear = minYear + goalGap * i
-            closest = sorted(inputCopy, key=lambda image: abs(image["year"] - goalYear))[0]
-            inputCopy.remove(closest)
-            outputList.append(closest)
+            sortedByDistance = sorted(inputCopy, key=lambda image: abs(image["year"] - goalYear))
+            smallestDistance = abs(sortedByDistance[0]["year"] - goalYear)
+            closestFew = list(filter(lambda element: abs(element["year"] - goalYear) == smallestDistance, sortedByDistance))
+            chosen = closestFew[0]
+            if (len(closestFew) > 1):
+                candidates = SingularImageSelector.getMostDifferentImages(outputList, closestFew, 1)
+                if len(candidates) > 0:
+                    chosen = candidates[0]
+
+            inputCopy.remove(chosen)
+            outputList.append(chosen)
 
         return outputList
 
