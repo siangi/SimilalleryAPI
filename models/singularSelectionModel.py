@@ -8,6 +8,8 @@ class SingularImageSelector(baseSelectionModel):
         return SingularImageSelector.getMostDifferentImages([baseData], inputList, goalLength)
 
     def getMostDifferentImages(baseData: List[dict], inputList: list, goalLength: int):
+        if (not isinstance(baseData, List)):
+            baseData = [baseData]
         outputList = []
         inputCopy = inputList.copy()
         containedValues = {
@@ -33,7 +35,7 @@ class SingularImageSelector(baseSelectionModel):
             # we want to fill the list even if there are duplicates so just copy the first few, since they are the most similar
             if len(filterList) < 1:
                 spacesToFill = spacesToFill = goalLength - len(outputList)
-                outputList.extend(inputCopy[0: spacesToFill - 1])
+                outputList.extend(inputCopy[:spacesToFill])
 
         return outputList
 

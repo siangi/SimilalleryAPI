@@ -6,6 +6,12 @@ from models.groupSelectionModel import GroupImageSelector
 from models.singularSelectionModel import SingularImageSelector
 from models.yearSelectionModel import YearImageSelector
 
+class SELECTION_MODEL(Enum):
+    SINGULAR = SingularImageSelector
+    GROUP = GroupImageSelector
+    YEAR = YearImageSelector
+    NONE = None
+
 class SEARCH_MODES(Enum):
     PALETTE: int = 0
     PALETTE_RATIOS: int = 1
@@ -30,7 +36,7 @@ class similaritySearchModel:
         return list(unique.values()) 
 
 
-    def getImageListBySimilarity(self, searchTypes: list, amountPerType: int, baseImageID: int, selectionModel: str = "group"):
+    def getImageListBySimilarity(self, searchTypes: list, amountPerType: int, baseImageID: int, selectionModel: SELECTION_MODEL = SELECTION_MODEL.SINGULAR):
         baseData = None
         if baseImageID == -1:
             baseData = self.getRandomBaseImage()
@@ -66,14 +72,20 @@ class similaritySearchModel:
 
             uncurated = self.imgMapper.searchRecords(fullquery) 
             curated = []
-            if(selectionModel == "singular"):
-                curated = SingularImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
-            elif(selectionModel == "group"):
-                curated = GroupImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
-            elif(selectionModel == "year"):
-                curated = YearImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
-            else:
-                curated = uncurated[0:amountPerType - 1] 
+
+            if(selectionModel.value == None):
+                curated = uncurated[0:amountPerType - 1]
+            else: 
+                curated = selectionModel.value.getMostDifferentImages(baseData, uncurated, amountPerType)
+
+            # if(selectionModel == "singular"):
+            #     curated = SingularImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            # elif(selectionModel == "group"):
+            #     curated = GroupImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            # elif(selectionModel == "year"):
+            #     curated = YearImageSelector.getMostDifferentImages(baseData, uncurated, amountPerType)
+            # else:
+            #     curated = uncurated[0:amountPerType - 1] 
 
             images.extend(curated)
 
