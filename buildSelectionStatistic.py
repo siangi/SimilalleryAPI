@@ -1,6 +1,10 @@
 from typing import List
 from decimal import Decimal
 from models.searchModel import similaritySearchModel, SEARCH_MODES
+from models.groupSelectionModel import GroupImageSelector
+from models.singularSelectionModel import SingularImageSelector
+from models.yearSelectionModel import YearImageSelector
+from models.baseSelectionModel import baseSelectionModel
 from database.imageMapper import imageMapper
 import statistics as pystat
 import time
@@ -38,6 +42,7 @@ class queryStatistic:
 
 class statisticBuilder: 
     SAMPLE_SIZE = 1000
+    SELECTED_IMAGES_LENGTH = 5
 
     # was used to adjust the search ranges for each criteria
     def tryFindImagesWithToFewResults():
@@ -55,23 +60,10 @@ class statisticBuilder:
         print("amount of failing Ids" + str(counter))
 
     def getListOfRandomImageIDs(length) -> List[dict]:
-
         query = f"SELECT idimage from image ORDER BY RAND() LIMIT {length}"
         mapper = imageMapper()
         
         return mapper.searchRecords(query)
-    
-
-    def CollectSimilarImageData(searchModes: List[int], randomIDs, selectionMode) -> List[List[dict]]:
-        SIMILAR_IMAGES_COUNT = 10
-        imageData = []
-        model = similaritySearchModel()
-        for record in randomIDs:
-            similars = model.getImageListBySimilarity(searchModes, SIMILAR_IMAGES_COUNT, record["idimage"], selectionMode)
-            queryData = statisticBuilder.createQueryStatistic(similars, record["idimage"])
-            imageData.append(queryData)
-
-        return imageData
     
     def createQueryStatistic(similars: list, baseID) -> queryStatistic:
         statistic = queryStatistic()
@@ -90,7 +82,7 @@ class statisticBuilder:
             if(len(similars) == 1 and similars[0]["idimage"] != baseID):
                 statistic.similarityMean = statistic.similarityValues[0]
                 statistic.similarityDeviation = 0
-            elif(len(similars) < 3):
+            elif(len(similars) <= 3):
                 statistic.similarityMean = 0.5
                 statistic.similarityDeviation = 0.5
             else:
@@ -127,32 +119,47 @@ class statisticBuilder:
             "indexStats": {"mean": round(pystat.mean(indexLengths), 2), "median": round(pystat.median(indexLengths), 2), "stdDeviation": round(pystat.stdev(indexLengths), 2)},
         }
 
-    def createSelectionStatistcs(selectionType: str, baseIDs: list):
+    def createSelectionStatistcsSpeedy():
         logging.basicConfig(filename="./logs/statsticsLogs.log", encoding="UTF-8", level=logging.DEBUG)
+        baseIDs = statisticBuilder.getListOfRandomImageIDs(statisticBuilder.SAMPLE_SIZE)
         logging.info("----------------------------")
-        logging.info(f"build statistics with {selectionType} selection {time.strftime('%b %d %Y %H:%M:%S', time.localtime())}")
-        for idx in range(0, 5):
-            try:
-                logging.info(f"testing category: {idx} with sample Size {statisticBuilder.SAMPLE_SIZE}")
-                startTime = time.time()
-                queries = statisticBuilder.CollectSimilarImageData([idx], baseIDs, selectionType)
-                overall = statisticBuilder.calculateOverallStatistcs(queries)
-                endTime = time.time()
-                logging.info(f"time elapsed: {(endTime - startTime)}")
+        logging.info(f"selection statistics calculated with sampleSize {statisticBuilder.SAMPLE_SIZE}, selection Size {statisticBuilder.SELECTED_IMAGES_LENGTH} at {time.strftime('%b %d %Y %H:%M:%S', time.localtime())}")
+        startTime = time.time()
+        for categoryIdx in range(0, 5):
+            logging.info(f"search type {categoryIdx} for all three Selections")
+            selectors: List[dict] = [
+                {"model": GroupImageSelector, "queryStatistics": []} ,
+                {"model": YearImageSelector, "queryStatistics": []},
+                {"model": SingularImageSelector, "queryStatistics": []},
+                {"model": None, "queryStatistics": []}]
+            
+            for record in baseIDs:
+                id = record["idimage"]
+                searchModel = similaritySearchModel()
+                baseData = searchModel.getBaseImageInfo(id)
+                similars = searchModel.getImageListBySimilarity([categoryIdx], 100, id, "none")
+
+                for selector in selectors:
+                    chosen: list
+                    if(selector["model"] == None):
+                        chosen = similars[:statisticBuilder.SELECTED_IMAGES_LENGTH]
+                    else:
+                        chosen = selector["model"].getMostDifferentImages(baseData, similars, statisticBuilder.SELECTED_IMAGES_LENGTH)   
+                    
+                    selector["queryStatistics"].append(statisticBuilder.createQueryStatistic(chosen, id))
+
+            for selector in selectors:
+                logging.info(f"selector: {selector['model']}")
+                overall = statisticBuilder.calculateOverallStatistcs(selector["queryStatistics"])
                 for key in overall:
                     logging.info(f"{key}: {overall[key]}")
-            except Exception as e:
-                logging.error(e)
-                print(e)
-                continue
+
+        endTime = time.time()
+        logging.info(f"time elapsed: {(endTime - startTime)}")
 
 if __name__ == '__main__':
     print("building statistics")
-    selections = ["singular", "group", "none"]
-    baseIDs = statisticBuilder.getListOfRandomImageIDs(statisticBuilder.SAMPLE_SIZE)
 
-    for selection in selections:
-        print(f"working on {selection}")
-        statisticBuilder.createSelectionStatistcs(selection, baseIDs)
+    statisticBuilder.createSelectionStatistcsSpeedy()
 
     print("done, see log for details")
